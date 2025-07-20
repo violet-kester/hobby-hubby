@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search Analytics Dashboard - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+.metric-card h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.metric-card .metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.performance-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.users-card {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.clicks-card {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.analytics-table {
+    font-size: 0.9rem;
+}
+
+.analytics-table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.badge-danger { background-color: #dc3545; }
+.badge-warning { background-color: #ffc107; color: #212529; }
+.badge-success { background-color: #28a745; }
+.badge-info { background-color: #17a2b8; }
+
+.date-filter {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-chart-line me-2"></i>
+                    Search Analytics Dashboard
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'forums:search' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-1"></i>Back to Search
+                    </a>
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Date Filter -->
+            <div class="date-filter">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="daysSelect" class="form-label">Time Period</label>
+                        <select class="form-select" id="daysSelect" name="days" onchange="this.form.submit()">
+                            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                            <option value="365" {% if days == 365 %}selected{% endif %}>Last year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Showing data from {{ since_date|date:"F d, Y" }} to {{ "now"|date:"F d, Y" }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Metrics Overview -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card metric-card text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ total_searches|floatformat:0 }}</h3>
+                            <div class="metric-label">Total Searches</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card metric-card performance-card text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ performance_metrics.avg_search_time|floatformat:0 }}ms</h3>
+                            <div class="metric-label">Avg Search Time</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card metric-card users-card text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ unique_users|floatformat:0 }}</h3>
+                            <div class="metric-label">Unique Users</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card metric-card clicks-card text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ click_through_rate }}%</h3>
+                            <div class="metric-label">Click-Through Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Summary -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tachometer-alt me-2"></i>Performance Summary
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>{{ performance_metrics.avg_results_count|floatformat:1 }}</h4>
+                                        <small class="text-muted">Avg Results per Search</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>{{ zero_result_rate }}%</h4>
+                                        <small class="text-muted">Zero Result Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>{{ performance_metrics.avg_database_hits|floatformat:1 }}</h4>
+                                        <small class="text-muted">Avg DB Queries</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>{{ unique_sessions }}</h4>
+                                        <small class="text-muted">Unique Sessions</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-rocket me-2"></i>Cache Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <h3 class="text-success" id="cacheHitRate">--%</h3>
+                                <small class="text-muted">Cache Hit Rate</small>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h6 class="text-success" id="cacheHits">--</h6>
+                                        <small class="text-muted">Cache Hits</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h6 class="text-warning" id="cacheMisses">--</h6>
+                                        <small class="text-muted">Cache Misses</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Content Type Distribution
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="contentTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Trends Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>Search Trends
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="trendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Queries and Performance Issues -->
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-fire me-2"></i>Top Search Queries
+                            </h5>
+                        </div>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm analytics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Query</th>
+                                        <th>Count</th>
+                                        <th>Avg Results</th>
+                                        <th>Avg Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for query in top_queries %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ query.normalized_query|truncatechars:30 }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ query.search_count }}</span>
+                                        </td>
+                                        <td>{{ query.avg_results|floatformat:1 }}</td>
+                                        <td>{{ query.avg_time_ms|floatformat:0 }}ms</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-muted text-center">No search data available</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Performance Issues
+                            </h5>
+                        </div>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm analytics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Slow Query</th>
+                                        <th>Count</th>
+                                        <th>Avg Time</th>
+                                        <th>Avg Results</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for search in poor_searches %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ search.query|truncatechars:25 }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ search.search_count }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ search.avg_time_ms|floatformat:0 }}ms</span>
+                                        </td>
+                                        <td>{{ search.avg_results|floatformat:1 }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-muted text-center">No performance issues detected</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Click Analysis and Failed Searches -->
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-mouse-pointer me-2"></i>Click Position Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm analytics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Position</th>
+                                        <th>Clicks</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for click in click_positions %}
+                                    <tr>
+                                        <td>Position {{ click.clicked_result_position }}</td>
+                                        <td>
+                                            <span class="badge bg-success">{{ click.click_count }}</span>
+                                        </td>
+                                        <td>
+                                            {% widthratio click.click_count performance_metrics.clicked_searches 100 %}%
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-muted text-center">No click data available</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-search-minus me-2"></i>Failed Searches (Zero Results)
+                            </h5>
+                        </div>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm analytics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Query</th>
+                                        <th>Failures</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for search in failed_searches %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ search.normalized_query|truncatechars:30 }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ search.failure_count }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'forums:search' %}?query={{ search.normalized_query|urlencode }}" 
+                                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-muted text-center">No failed searches</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading indicator -->
+<div class="loading-spinner" id="loadingSpinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<script>
+// Chart.js configuration
+Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.font.size = 12;
+
+// Search Trends Chart
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+const trendsChart = new Chart(trendsCtx, {
+    type: 'line',
+    data: {
+        labels: {{ search_trends|safe }}.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }),
+        datasets: [{
+            label: 'Daily Searches',
+            data: {{ search_trends|safe }}.map(item => item.searches),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Searches'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: false
+            }
+        }
+    }
+});
+
+// Content Type Distribution Chart
+const contentTypeCtx = document.getElementById('contentTypeChart').getContext('2d');
+const contentTypeData = {{ content_type_stats|safe }};
+const contentTypeChart = new Chart(contentTypeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: contentTypeData.map(item => item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1)),
+        datasets: [{
+            data: contentTypeData.map(item => item.search_count),
+            backgroundColor: [
+                '#667eea',
+                '#f093fb',
+                '#4facfe',
+                '#43e97b',
+                '#f6d365'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Refresh data function
+function refreshData() {
+    const spinner = document.getElementById('loadingSpinner');
+    spinner.style.display = 'block';
+    
+    // Simple page reload for now - in production, could use AJAX
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
+
+// Load cache performance data
+function loadCacheStats() {
+    fetch('{% url "forums:analytics_api" %}?metric=cache_stats', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.cache_stats) {
+            const stats = data.cache_stats;
+            const hitRate = data.cache_hit_rate || 0;
+            
+            document.getElementById('cacheHitRate').textContent = hitRate + '%';
+            document.getElementById('cacheHits').textContent = stats.cache_hits || 0;
+            document.getElementById('cacheMisses').textContent = stats.cache_misses || 0;
+            
+            // Update color based on hit rate
+            const hitRateElement = document.getElementById('cacheHitRate');
+            if (hitRate >= 70) {
+                hitRateElement.className = 'text-success';
+            } else if (hitRate >= 40) {
+                hitRateElement.className = 'text-warning';
+            } else {
+                hitRateElement.className = 'text-danger';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error loading cache stats:', error);
+    });
+}
+
+// Load cache stats on page load
+loadCacheStats();
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+    refreshData();
+    loadCacheStats();
+}, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ gallery_user.display_name }}'s Photo Gallery - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Gallery Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-images me-2"></i>{{ gallery_user.display_name }}'s Photo Gallery
+                    </h2>
+                    <p class="text-muted mb-0">
+                        {% if photo_count %}
+                            {{ photo_count }} photo{{ photo_count|pluralize }}
+                        {% else %}
+                            No photos yet
+                        {% endif %}
+                    </p>
+                </div>
+                
+                {% if is_own_gallery %}
+                <div>
+                    <a href="{% url 'accounts:upload_photo' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Upload Photo
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'accounts:user_profile' user_id=gallery_user.id %}">
+                            {{ gallery_user.display_name }}'s Profile
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Photo Gallery</li>
+                </ol>
+            </nav>
+            
+            {% if photos %}
+            <!-- Photo Grid -->
+            <div class="row g-3" id="photo-gallery">
+                {% for photo in photos %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card h-100 photo-card">
+                        <div class="position-relative">
+                            <img src="{{ photo.image.url }}" 
+                                 alt="{% if photo.caption %}{{ photo.caption }}{% else %}Photo by {{ photo.user.display_name }}{% endif %}"
+                                 class="card-img-top photo-thumbnail"
+                                 style="height: 200px; object-fit: cover; cursor: pointer;"
+                                 data-bs-toggle="modal" 
+                                 data-bs-target="#photoModal"
+                                 data-photo-url="{{ photo.image.url }}"
+                                 data-photo-caption="{% if photo.caption %}{{ photo.caption }}{% else %}Photo by {{ photo.user.display_name }}{% endif %}"
+                                 data-photo-date="{{ photo.created_at|date:'M d, Y' }}"
+                                 data-photo-id="{{ photo.id }}">
+                            
+                            {% if is_own_gallery %}
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-light btn-floating" 
+                                            type="button" 
+                                            data-bs-toggle="dropdown" 
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item text-danger" 
+                                               href="{% url 'accounts:delete_photo' photo_id=photo.id %}"
+                                               onclick="return confirm('Are you sure you want to delete this photo?')">
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if photo.caption %}
+                        <div class="card-body py-2">
+                            <p class="card-text small text-muted mb-1">{{ photo.caption }}</p>
+                            <small class="text-muted">{{ photo.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% else %}
+                        <div class="card-body py-2">
+                            <small class="text-muted">{{ photo.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if photos.has_other_pages %}
+            <nav aria-label="Photo gallery pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if photos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ photos.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ photos.number }} of {{ photos.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if photos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ photos.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ photos.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="fas fa-images fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Photos Yet</h4>
+                {% if is_own_gallery %}
+                    <p class="text-muted mb-4">Start building your photo gallery by uploading your first photo!</p>
+                    <a href="{% url 'accounts:upload_photo' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Upload Your First Photo
+                    </a>
+                {% else %}
+                    <p class="text-muted">{{ gallery_user.display_name }} hasn't uploaded any photos yet.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Photo Modal (Lightbox) -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel">Photo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalPhoto" src="" alt="" class="img-fluid">
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                    <p id="modalCaption" class="mb-1"></p>
+                    <small id="modalDate" class="text-muted"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.photo-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.photo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.photo-thumbnail:hover {
+    opacity: 0.9;
+}
+
+.btn-floating {
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    background-color: rgba(0,0,0,0.3);
+}
+</style>
+
+<script>
+// Lightbox functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const photoModal = document.getElementById('photoModal');
+    const modalPhoto = document.getElementById('modalPhoto');
+    const modalCaption = document.getElementById('modalCaption');
+    const modalDate = document.getElementById('modalDate');
+    
+    photoModal.addEventListener('show.bs.modal', function(event) {
+        const trigger = event.relatedTarget;
+        const photoUrl = trigger.getAttribute('data-photo-url');
+        const photoCaption = trigger.getAttribute('data-photo-caption');
+        const photoDate = trigger.getAttribute('data-photo-date');
+        
+        modalPhoto.src = photoUrl;
+        modalPhoto.alt = photoCaption;
+        modalCaption.textContent = photoCaption;
+        modalDate.textContent = photoDate;
+    });
+});
+</script>
+{% endblock %}

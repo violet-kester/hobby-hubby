@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Invalid Verification Link - Hobby Hubby{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Verification Failed</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5>Invalid Verification Link</h5>
+                    <p>
+                        The verification link you clicked is either invalid or has expired.
+                        This could happen if:
+                    </p>
+                    <ul>
+                        <li>The link was copied incorrectly</li>
+                        <li>The link has already been used</li>
+                        <li>The link has expired</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Register New Account</a>
+                    <a href="/" class="btn btn-outline-primary">Go to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

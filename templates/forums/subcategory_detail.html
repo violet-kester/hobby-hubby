@@ -1,0 +1,117 @@
+{% extends "forums/base_forum.html" %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'forums:category_list' %}">{{ subcategory.category.name }}</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ subcategory.name }}</li>
+{% endblock %}
+
+{% block forum_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>{{ subcategory.name }}</h1>
+                <p class="text-muted mb-0">{{ subcategory.description }}</p>
+            </div>
+            <div class="text-end">
+                <div class="mb-2">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'forums:thread_create' category_slug=subcategory.category.slug subcategory_slug=subcategory.slug %}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        New Thread
+                    </a>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-1"></i>
+                        Login to Post
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="badge bg-primary fs-6">{{ subcategory.member_count }} members</div>
+            </div>
+        </div>
+        
+        {% if threads %}
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Threads</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for thread in threads %}
+                <a href="{% url 'forums:thread_detail' category_slug=subcategory.category.slug subcategory_slug=subcategory.slug thread_slug=thread.slug %}" 
+                   class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                {% if thread.is_pinned %}
+                                <i class="fas fa-thumbtack text-warning me-2" title="Pinned"></i>
+                                {% endif %}
+                                {% if thread.is_locked %}
+                                <i class="fas fa-lock text-danger me-2" title="Locked"></i>
+                                {% endif %}
+                                {% if user.is_authenticated and thread.id in user_bookmarked_threads %}
+                                <i class="fas fa-bookmark text-warning me-2" title="bookmarked"></i>
+                                {% endif %}
+                                <h6 class="mb-0 fw-bold">{{ thread.title }}</h6>
+                            </div>
+                            <p class="mb-1 text-muted small">
+                                Started by <strong>{{ thread.author.display_name }}</strong>
+                                on {{ thread.created_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">
+                                <div><strong>{{ thread.post_count }}</strong> posts</div>
+                                <div><strong>{{ thread.view_count }}</strong> views</div>
+                                <div class="mt-1">Last: {{ thread.last_post_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Thread pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <h4 class="text-muted">No threads yet</h4>
+            <p class="text-muted">Be the first to start a discussion in this subcategory!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

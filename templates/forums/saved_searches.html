@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Saved Searches - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-star me-2"></i>
+                    My Saved Searches
+                </h2>
+                <a href="{% url 'forums:search' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>Create New Search
+                </a>
+            </div>
+            
+            {% if saved_searches %}
+            <div class="row">
+                {% for search in saved_searches %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-search me-2"></i>
+                                {{ search.name }}
+                            </h5>
+                            <p class="card-text text-muted mb-2">
+                                <strong>Query:</strong> {{ search.query }}
+                            </p>
+                            <div class="small text-muted mb-3">
+                                <div><strong>Type:</strong> {{ search.get_content_type_display }}</div>
+                                <div><strong>Sort:</strong> {{ search.get_sort_by_display }}</div>
+                                {% if search.last_used_at %}
+                                <div><strong>Last used:</strong> {{ search.last_used_at|timesince }} ago</div>
+                                {% else %}
+                                <div><strong>Never used</strong></div>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ search.get_search_url }}" class="btn btn-sm btn-primary flex-grow-1">
+                                    <i class="fas fa-play me-1"></i>Run Search
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger delete-search-btn" 
+                                        data-search-id="{{ search.id }}"
+                                        data-search-name="{{ search.name }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-star fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Saved Searches</h4>
+                <p class="text-muted mb-4">
+                    You haven't saved any searches yet. Create and save searches to quickly access them later.
+                </p>
+                <a href="{% url 'forums:search' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Start Searching
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Saved Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the saved search "<span id="deleteSearchName"></span>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-search-btn');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteSearchName = document.getElementById('deleteSearchName');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    let currentSearchId = null;
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentSearchId = this.dataset.searchId;
+            const searchName = this.dataset.searchName;
+            deleteSearchName.textContent = searchName;
+            deleteModal.show();
+        });
+    });
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (currentSearchId) {
+            fetch(`/forums/search/saved/${currentSearchId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to delete search');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete search');
+            });
+            
+            deleteModal.hide();
+        }
+    });
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

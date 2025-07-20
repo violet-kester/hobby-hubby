@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - {{ user.display_name }} - Hobby Hubby{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>User Profile</h3>
+            </div>
+            <div class="card-body">
+                <h4>{{ user.display_name }}</h4>
+                
+                <table class="table">
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Location:</th>
+                        <td>{{ user.location|default:"Not specified" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Bio:</th>
+                        <td>{{ user.bio|default:"No bio yet" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Member Since:</th>
+                        <td>{{ user.date_joined|date:"F d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email Verified:</th>
+                        <td>
+                            {% if user.is_email_verified %}
+                                <span class="badge bg-success">Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning">Not Verified</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <hr>
+                
+                <a href="#" class="btn btn-primary">Edit Profile</a>
+                <a href="{% url 'accounts:password_reset' %}" class="btn btn-outline-primary">Change Password</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Profile Picture</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile picture" class="img-fluid rounded">
+                {% else %}
+                    <p class="text-muted">No profile picture</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,299 @@
+{% extends "forums/base_forum.html" %}
+{% load static %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'forums:category_list' %}">{{ thread.subcategory.category.name }}</a>
+</li>
+<li class="breadcrumb-item">
+    <a href="{% url 'forums:subcategory_detail' category_slug=thread.subcategory.category.slug subcategory_slug=thread.subcategory.slug %}">
+        {{ thread.subcategory.name }}
+    </a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ thread.title }}</li>
+{% endblock %}
+
+{% block forum_content %}
+{% csrf_token %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                    {% if thread.is_pinned %}
+                    <i class="fas fa-thumbtack text-warning me-2" title="Pinned"></i>
+                    {% endif %}
+                    {% if thread.is_locked %}
+                    <i class="fas fa-lock text-danger me-2" title="Locked"></i>
+                    {% endif %}
+                    <h1 class="mb-0">{{ thread.title }}</h1>
+                </div>
+                <p class="text-muted mb-0">
+                    Started by <strong>{{ thread.author.display_name }}</strong>
+                    on {{ thread.created_at|date:"F d, Y \a\t H:i" }}
+                </p>
+            </div>
+            <div class="text-end">
+                <div class="d-flex flex-column align-items-end">
+                    {% if user.is_authenticated %}
+                    <div class="mb-2">
+                        <button class="btn btn-sm btn-outline-warning bookmark-btn" 
+                                data-thread-id="{{ thread.id }}"
+                                data-bookmarked="{% if user_bookmarked %}true{% else %}false{% endif %}"
+                                title="{% if user_bookmarked %}Remove bookmark{% else %}Bookmark this thread{% endif %}">
+                            <i class="{% if user_bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                            {% if user_bookmarked %}bookmarked{% else %}Bookmark{% endif %}
+                        </button>
+                    </div>
+                    {% endif %}
+                    <div class="small text-muted">
+                        <div><strong>{{ thread.post_count }}</strong> posts</div>
+                        <div><strong>{{ thread.view_count }}</strong> views</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if posts %}
+        {% for post in posts %}
+        <div class="card mb-3" id="post-{{ post.id }}">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <strong>{{ post.author.display_name }}</strong>
+                        {% if post.author.location %}
+                        <small class="text-muted ms-2">from {{ post.author.location }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">
+                            {{ post.created_at|date:"M d, Y H:i" }}
+                            {% if post.is_edited %}
+                            <br><em>Edited: {{ post.edited_at|date:"M d, Y H:i" }}</em>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex">
+                    <!-- Vote section -->
+                    <div class="vote-section me-3">
+                        {% if user.is_authenticated and user != post.author %}
+                        <button class="btn btn-sm btn-outline-primary vote-btn" 
+                                data-post-id="{{ post.id }}"
+                                data-voted="{% if post.id in user_voted_posts %}true{% else %}false{% endif %}"
+                                title="{% if post.id in user_voted_posts %}Remove vote{% else %}Vote for this post{% endif %}">
+                            <i class="fas fa-thumbs-up"></i>
+                        </button>
+                        {% elif not user.is_authenticated %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-secondary login-to-vote" title="Login to vote">
+                            <i class="fas fa-thumbs-up"></i>
+                        </a>
+                        {% endif %}
+                        <div class="vote-count small text-center mt-1" data-post-id="{{ post.id }}">
+                            <strong>{{ post.vote_count }}</strong><br>
+                            <small class="text-muted">vote{{ post.vote_count|pluralize }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Post content -->
+                    <div class="post-content flex-grow-1">
+                        {{ post.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Post pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <h4 class="text-muted">No posts yet</h4>
+            <p class="text-muted">This thread is empty. Be the first to reply!</p>
+        </div>
+        {% endif %}
+        
+        <!-- Reply Button -->
+        {% if user.is_authenticated and not thread.is_locked %}
+        <div class="text-center mt-4">
+            <a href="{% url 'forums:post_create' category_slug=thread.subcategory.category.slug subcategory_slug=thread.subcategory.slug thread_slug=thread.slug %}" 
+               class="btn btn-success btn-lg">
+                <i class="fas fa-reply me-2"></i>
+                Reply to Thread
+            </a>
+        </div>
+        {% elif not user.is_authenticated %}
+        <div class="text-center mt-4">
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Login to Reply
+            </a>
+        </div>
+        {% elif thread.is_locked %}
+        <div class="text-center mt-4">
+            <div class="alert alert-warning">
+                <i class="fas fa-lock me-2"></i>
+                This thread is locked and no longer accepts replies.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- AJAX Voting JavaScript -->
+{% if user.is_authenticated %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle vote button clicks
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.vote-btn')) {
+            event.preventDefault();
+            
+            const button = event.target.closest('.vote-btn');
+            const postId = button.getAttribute('data-post-id');
+            const isVoted = button.getAttribute('data-voted') === 'true';
+            
+            // Disable button during request
+            button.disabled = true;
+            
+            // Make AJAX request
+            fetch('{% url "forums:vote_post" post_id=0 %}'.replace('0', postId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Update vote button state
+                    if (data.voted) {
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-primary');
+                        button.setAttribute('data-voted', 'true');
+                        button.setAttribute('title', 'Remove vote');
+                    } else {
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-outline-primary');
+                        button.setAttribute('data-voted', 'false');
+                        button.setAttribute('title', 'Vote for this post');
+                    }
+                    
+                    // Update vote count display
+                    const voteCountElement = document.querySelector(`.vote-count[data-post-id="${postId}"] strong`);
+                    const voteTextElement = document.querySelector(`.vote-count[data-post-id="${postId}"] small`);
+                    if (voteCountElement) {
+                        voteCountElement.textContent = data.vote_count;
+                        voteTextElement.textContent = data.vote_count === 1 ? 'vote' : 'votes';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Vote error:', error);
+                alert('Error processing vote. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable button
+                button.disabled = false;
+            });
+        }
+    });
+});
+
+// Handle bookmark button clicks
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.bookmark-btn')) {
+        event.preventDefault();
+        
+        const button = event.target.closest('.bookmark-btn');
+        const threadId = button.getAttribute('data-thread-id');
+        const isBookmarked = button.getAttribute('data-bookmarked') === 'true';
+        
+        // Disable button during request
+        button.disabled = true;
+        
+        // Make AJAX request
+        fetch('{% url "forums:bookmark_thread" thread_id=0 %}'.replace('0', threadId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                // Update bookmark button state
+                const icon = button.querySelector('i');
+                if (data.bookmarked) {
+                    button.classList.remove('btn-outline-warning');
+                    button.classList.add('btn-warning');
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    button.setAttribute('data-bookmarked', 'true');
+                    button.setAttribute('title', 'Remove bookmark');
+                    button.innerHTML = '<i class="fas fa-bookmark"></i> bookmarked';
+                } else {
+                    button.classList.remove('btn-warning');
+                    button.classList.add('btn-outline-warning');
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    button.setAttribute('data-bookmarked', 'false');
+                    button.setAttribute('title', 'Bookmark this thread');
+                    button.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Bookmark error:', error);
+            alert('Error processing bookmark. Please try again.');
+        })
+        .finally(() => {
+            // Re-enable button
+            button.disabled = false;
+        });
+    }
+});
+
+});
+</script>
+{% endif %}
+{% endblock %}

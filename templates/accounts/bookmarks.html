@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Bookmarks - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-bookmark me-2"></i>My Bookmarks</h1>
+                <small class="text-muted">{{ page_obj.paginator.count }} bookmark{{ page_obj.paginator.count|pluralize }}</small>
+            </div>
+            
+            {% if bookmarks %}
+            <div class="row">
+                {% for bookmark in bookmarks %}
+                <div class="col-12 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'forums:thread_detail' category_slug=bookmark.thread.subcategory.category.slug subcategory_slug=bookmark.thread.subcategory.slug thread_slug=bookmark.thread.slug %}" 
+                                           class="text-decoration-none">
+                                            {% if bookmark.thread.is_pinned %}
+                                            <i class="fas fa-thumbtack text-warning me-1" title="Pinned"></i>
+                                            {% endif %}
+                                            {% if bookmark.thread.is_locked %}
+                                            <i class="fas fa-lock text-danger me-1" title="Locked"></i>
+                                            {% endif %}
+                                            {{ bookmark.thread.title }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text text-muted mb-2">
+                                        <small>
+                                            in <a href="{% url 'forums:subcategory_detail' category_slug=bookmark.thread.subcategory.category.slug subcategory_slug=bookmark.thread.subcategory.slug %}" 
+                                                  class="text-decoration-none">{{ bookmark.thread.subcategory.name }}</a>
+                                            • Started by <strong>{{ bookmark.thread.author.display_name }}</strong>
+                                            • {{ bookmark.thread.created_at|date:"M d, Y" }}
+                                        </small>
+                                    </p>
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            Bookmarked on {{ bookmark.created_at|date:"M d, Y \a\t H:i" }}
+                                        </small>
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="d-flex flex-column align-items-end">
+                                        <div class="mb-2">
+                                            <span class="badge bg-primary me-1">{{ bookmark.thread.post_count }} post{{ bookmark.thread.post_count|pluralize }}</span>
+                                            <span class="badge bg-secondary">{{ bookmark.thread.view_count }} view{{ bookmark.thread.view_count|pluralize }}</span>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger bookmark-remove-btn" 
+                                                data-thread-id="{{ bookmark.thread.id }}"
+                                                data-thread-title="{{ bookmark.thread.title }}"
+                                                title="Remove bookmark">
+                                            <i class="fas fa-bookmark-remove"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Bookmarks pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-bookmark fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted">No bookmarked threads</h4>
+                <p class="text-muted mb-4">You haven't bookmarked any threads yet. Browse the forums and bookmark interesting discussions!</p>
+                <a href="{% url 'forums:category_list' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Browse Forums
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Bookmark Removal JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle bookmark removal
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.bookmark-remove-btn')) {
+            event.preventDefault();
+            
+            const button = event.target.closest('.bookmark-remove-btn');
+            const threadId = button.getAttribute('data-thread-id');
+            const threadTitle = button.getAttribute('data-thread-title');
+            
+            // Confirm removal
+            if (confirm(`Remove "${threadTitle}" from your bookmarks?`)) {
+                // Disable button during request
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                
+                // Make AJAX request
+                fetch(`/forums/bookmark/${threadId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        // Re-enable button
+                        button.disabled = false;
+                        button.innerHTML = '<i class="fas fa-bookmark-remove"></i> Remove';
+                    } else if (!data.bookmarked) {
+                        // Remove the bookmark card from DOM
+                        const card = button.closest('.col-12');
+                        card.remove();
+                        
+                        // Check if page is now empty
+                        const remainingCards = document.querySelectorAll('.bookmark-remove-btn').length;
+                        if (remainingCards === 0) {
+                            // Reload page to show empty state
+                            window.location.reload();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Bookmark removal error:', error);
+                    alert('Error removing bookmark. Please try again.');
+                    // Re-enable button
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-bookmark-remove"></i> Remove';
+                });
+            }
+        }
+    });
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

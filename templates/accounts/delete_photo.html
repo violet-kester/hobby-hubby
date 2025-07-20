@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Photo - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-trash me-2"></i>Delete Photo
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <img src="{{ photo.image.url }}" 
+                             alt="{% if photo.caption %}{{ photo.caption }}{% else %}Photo to delete{% endif %}"
+                             class="img-fluid rounded"
+                             style="max-width: 300px; max-height: 300px;">
+                    </div>
+                    
+                    {% if photo.caption %}
+                    <div class="mb-3">
+                        <h6>Caption:</h6>
+                        <p class="text-muted">{{ photo.caption }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h6>Upload Date:</h6>
+                        <p class="text-muted">{{ photo.created_at|date:"F d, Y at g:i A" }}</p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone. The photo will be permanently deleted from your gallery.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'accounts:photo_gallery' user_id=photo.user.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Delete Photo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

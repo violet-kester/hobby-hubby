@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Current Profile Picture -->
+                        {% if user.profile_picture %}
+                        <div class="text-center mb-4">
+                            <img src="{{ user.profile_picture.url }}" 
+                                 alt="Current Profile Picture"
+                                 class="img-fluid rounded-circle"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                            <p class="text-muted mt-2 mb-0">Current Profile Picture</p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Display Name -->
+                        <div class="mb-3">
+                            <label for="{{ form.display_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-2"></i>Display Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.display_name }}
+                            {% if form.display_name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.display_name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">This is how your name will appear on the forum.</div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Location
+                            </label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.location.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Your city, country, or general location.</div>
+                        </div>
+                        
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label for="{{ form.bio.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-text me-2"></i>Bio
+                            </label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.bio.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Tell others about yourself, your interests, and hobbies.</div>
+                        </div>
+                        
+                        <!-- Profile Picture -->
+                        <div class="mb-4">
+                            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                                <i class="fas fa-camera me-2"></i>Profile Picture
+                            </label>
+                            {{ form.profile_picture }}
+                            {% if form.profile_picture.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.profile_picture.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Upload a profile picture. Supported formats: JPG, JPEG, PNG, GIF, WebP. Max size: 5MB.
+                            </div>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'accounts:user_profile' user_id=user.id %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Actions -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'accounts:manage_hobbies' %}" class="btn btn-outline-primary me-3">
+                    <i class="fas fa-heart me-2"></i>Manage Hobbies
+                </a>
+                <a href="{% url 'accounts:bookmarks' %}" class="btn btn-outline-success">
+                    <i class="fas fa-bookmark me-2"></i>My Bookmarks
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.display_name }}'s Profile - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <!-- Profile Header -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            {% if profile_user.profile_picture %}
+                            <img src="{{ profile_user.profile_picture.url }}" 
+                                 alt="{{ profile_user.display_name }}'s Profile Picture"
+                                 class="img-fluid rounded-circle mb-3"
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                 style="width: 150px; height: 150px;">
+                                <i class="fas fa-user fa-4x text-white"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h1 class="mb-1">{{ profile_user.display_name }}</h1>
+                                    {% if profile_user.location %}
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-map-marker-alt me-2"></i>{{ profile_user.location }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {% if is_own_profile %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-cog me-1"></i>Manage
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}">
+                                                <i class="fas fa-edit me-2"></i>Edit Profile
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'accounts:manage_hobbies' %}">
+                                                <i class="fas fa-heart me-2"></i>Manage Hobbies
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'accounts:bookmarks' %}">
+                                                <i class="fas fa-bookmark me-2"></i>My Bookmarks
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                    {% elif friendship_status %}
+                                        {% if friendship_status == 'can_send_request' %}
+                                        <form method="post" action="{% url 'accounts:send_friend_request' user_id=profile_user.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-user-plus me-1"></i>Add Friend
+                                            </button>
+                                        </form>
+                                        {% elif friendship_status == 'request_sent' %}
+                                        <button class="btn btn-warning" disabled>
+                                            <i class="fas fa-clock me-1"></i>Request Sent
+                                        </button>
+                                        {% elif friendship_status == 'request_received' %}
+                                        <div class="d-flex gap-2">
+                                            <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=friendship_request.id action='accept' %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-check me-1"></i>Accept
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=friendship_request.id action='reject' %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% elif friendship_status == 'friends' %}
+                                        <button class="btn btn-success" disabled>
+                                            <i class="fas fa-check me-1"></i>Friends
+                                        </button>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if profile_user.bio %}
+                            <div class="mb-3">
+                                <h6 class="text-muted">About</h6>
+                                <p>{{ profile_user.bio|linebreaks }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Profile Stats -->
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h5 class="text-primary mb-0">{{ post_count }}</h5>
+                                        <small class="text-muted">Post{{ post_count|pluralize }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <h5 class="text-success mb-0">{{ hobbies.count }}</h5>
+                                        <small class="text-muted">Hobb{{ hobbies.count|pluralize:"y,ies" }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="border-end">
+                                        <a href="{% url 'accounts:friends_list' user_id=profile_user.id %}" class="text-decoration-none">
+                                            <h5 class="text-warning mb-0">{{ friend_count }}</h5>
+                                            <small class="text-muted">Friend{{ friend_count|pluralize }}</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <h5 class="text-info mb-0">{{ profile_user.date_joined|date:"M Y" }}</h5>
+                                    <small class="text-muted">Joined</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Tabs -->
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="hobbies-tab" data-bs-toggle="tab" data-bs-target="#hobbies" 
+                                    type="button" role="tab" aria-controls="hobbies" aria-selected="true">
+                                <i class="fas fa-heart me-2"></i>Hobbies & Interests
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" 
+                                    type="button" role="tab" aria-controls="photos" aria-selected="false">
+                                <i class="fas fa-images me-2"></i>Photos
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" 
+                                    type="button" role="tab" aria-controls="activity" aria-selected="false">
+                                <i class="fas fa-chart-line me-2"></i>Activity
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="profileTabsContent">
+                        <!-- Hobbies Tab -->
+                        <div class="tab-pane fade show active" id="hobbies" role="tabpanel" aria-labelledby="hobbies-tab">
+                            {% if hobbies %}
+                            <div class="row">
+                                {% for hobby in hobbies %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% if hobby.subcategory.category.icon %}
+                                                    <i class="{{ hobby.subcategory.category.icon }} fa-2x text-primary"></i>
+                                                    {% else %}
+                                                    <i class="fas fa-folder fa-2x text-primary"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">
+                                                        <a href="{% url 'forums:subcategory_detail' category_slug=hobby.subcategory.category.slug subcategory_slug=hobby.subcategory.slug %}" 
+                                                           class="text-decoration-none">
+                                                            {{ hobby.subcategory.name }}
+                                                        </a>
+                                                    </h6>
+                                                    <small class="text-muted">{{ hobby.subcategory.category.name }}</small>
+                                                    <br>
+                                                    <small class="text-muted">Since {{ hobby.joined_at|date:"M Y" }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No hobbies listed</h5>
+                                {% if is_own_profile %}
+                                <p class="text-muted mb-3">Share your interests with the community!</p>
+                                <a href="{% url 'accounts:manage_hobbies' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Add Hobbies
+                                </a>
+                                {% else %}
+                                <p class="text-muted">{{ profile_user.display_name }} hasn't shared any hobbies yet.</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Photos Tab -->
+                        <div class="tab-pane fade" id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h6 class="mb-0">Recent Photos</h6>
+                                <a href="{% url 'accounts:photo_gallery' user_id=profile_user.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-images me-2"></i>View All Photos
+                                </a>
+                            </div>
+                            
+                            {% if profile_user.photos.exists %}
+                            <div class="row g-2">
+                                {% for photo in profile_user.photos.all|slice:":8" %}
+                                <div class="col-lg-3 col-md-4 col-sm-6">
+                                    <div class="card">
+                                        <img src="{{ photo.image.url }}" 
+                                             alt="{% if photo.caption %}{{ photo.caption }}{% else %}Photo by {{ photo.user.display_name }}{% endif %}"
+                                             class="card-img-top"
+                                             style="height: 120px; object-fit: cover;">
+                                        {% if photo.caption %}
+                                        <div class="card-body py-2">
+                                            <p class="card-text small mb-0">{{ photo.caption|truncatechars:40 }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if profile_user.photos.count > 8 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'accounts:photo_gallery' user_id=profile_user.id %}" class="btn btn-primary">
+                                    <i class="fas fa-images me-2"></i>View All {{ profile_user.photos.count }} Photos
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                <h6 class="text-muted">No Photos Yet</h6>
+                                {% if is_own_profile %}
+                                    <p class="text-muted mb-3">Start building your photo gallery!</p>
+                                    <a href="{% url 'accounts:upload_photo' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>Upload Your First Photo
+                                    </a>
+                                {% else %}
+                                    <p class="text-muted">{{ profile_user.display_name }} hasn't uploaded any photos yet.</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Activity Tab -->
+                        <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-0 bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-comments fa-3x mb-2"></i>
+                                            <h4>{{ post_count }}</h4>
+                                            <small>Total Posts</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-0 bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-heart fa-3x mb-2"></i>
+                                            <h4>{{ hobbies.count }}</h4>
+                                            <small>Hobbies</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-0 bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-calendar fa-3x mb-2"></i>
+                                            <h4>{{ profile_user.date_joined|timesince }}</h4>
+                                            <small>Member for</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6 class="mb-3">Member Since</h6>
+                                <p class="text-muted">
+                                    {{ profile_user.display_name }} joined Hobby Hubby on 
+                                    {{ profile_user.date_joined|date:"F d, Y" }} and has been an active member 
+                                    for {{ profile_user.date_joined|timesince }}.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

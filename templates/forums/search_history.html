@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search History - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-history me-2"></i>
+                    Search History
+                </h2>
+                <div class="btn-group">
+                    <a href="{% url 'forums:search' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>New Search
+                    </a>
+                    {% if search_history %}
+                    <button class="btn btn-outline-danger" id="clearHistoryBtn">
+                        <i class="fas fa-trash me-1"></i>Clear History
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if search_history %}
+            <div class="row">
+                <div class="col-12">
+                    {% for date, searches in grouped_history.items %}
+                    <div class="mb-4">
+                        <h5 class="text-muted border-bottom pb-2">
+                            {{ date|date:"F d, Y" }}
+                        </h5>
+                        {% for search in searches %}
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-search text-muted me-2"></i>
+                                            <strong>{{ search.query }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">
+                                            <span class="badge bg-light text-dark">{{ search.get_content_type_display }}</span>
+                                            {% if search.results_count > 0 %}
+                                            <span class="ms-2">{{ search.results_count }} result{{ search.results_count|pluralize }}</span>
+                                            {% else %}
+                                            <span class="ms-2 text-muted">No results</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <small class="text-muted">
+                                            {{ search.created_at|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <a href="{% url 'forums:search' %}?query={{ search.query|urlencode }}&content_type={{ search.content_type }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-redo"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-history fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Search History</h4>
+                <p class="text-muted mb-4">
+                    Your search history will appear here after you perform searches.
+                </p>
+                <a href="{% url 'forums:search' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Start Searching
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Clear History Confirmation Modal -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clearHistoryModalLabel">Clear Search History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to clear your entire search history? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmClearHistory">Clear History</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const confirmClearBtn = document.getElementById('confirmClearHistory');
+    
+    if (clearHistoryBtn) {
+        const clearHistoryModal = new bootstrap.Modal(document.getElementById('clearHistoryModal'));
+        
+        clearHistoryBtn.addEventListener('click', function() {
+            clearHistoryModal.show();
+        });
+        
+        confirmClearBtn.addEventListener('click', function() {
+            fetch('{% url "forums:clear_search_history" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Failed to clear history');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to clear history');
+            });
+            
+            clearHistoryModal.hide();
+        });
+    }
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

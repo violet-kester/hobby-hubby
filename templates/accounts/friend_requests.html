@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Friend Requests - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-user-friends me-2"></i>Friend Requests
+                    </h2>
+                    <p class="text-muted mb-0">
+                        {% if request_count %}
+                            {{ request_count }} pending request{{ request_count|pluralize }}
+                        {% else %}
+                            No pending requests
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            {% if friend_requests %}
+            <!-- Friend Requests List -->
+            <div class="row">
+                {% for request in friend_requests %}
+                <div class="col-12 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    {% if request.from_user.profile_picture %}
+                                    <img src="{{ request.from_user.profile_picture.url }}" 
+                                         alt="{{ request.from_user.display_name }}"
+                                         class="rounded-circle"
+                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                                         style="width: 60px; height: 60px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h5 class="mb-1">
+                                        <a href="{% url 'accounts:user_profile' user_id=request.from_user.id %}" 
+                                           class="text-decoration-none">
+                                            {{ request.from_user.display_name }}
+                                        </a>
+                                    </h5>
+                                    {% if request.from_user.location %}
+                                    <p class="text-muted mb-1">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ request.from_user.location }}
+                                    </p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        Sent {{ request.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                                
+                                <div class="col-md-4 text-end">
+                                    <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=request.id action='accept' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-sm me-2">
+                                            <i class="fas fa-check me-1"></i>Accept
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=request.id action='reject' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-times me-1"></i>Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if friend_requests.has_other_pages %}
+            <nav aria-label="Friend requests pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if friend_requests.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ friend_requests.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ friend_requests.number }} of {{ friend_requests.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if friend_requests.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ friend_requests.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ friend_requests.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="fas fa-user-friends fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Friend Requests</h4>
+                <p class="text-muted mb-4">You don't have any pending friend requests at the moment.</p>
+                <a href="{% url 'forums:category_list' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Explore the Community
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

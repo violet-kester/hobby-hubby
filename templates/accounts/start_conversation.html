@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Start Conversation with {{ target_user.display_name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <!-- Header -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'accounts:user_profile' user_id=target_user.id %}" class="btn btn-outline-secondary btn-sm me-3">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Profile
+                        </a>
+                        
+                        {% if target_user.profile_picture %}
+                        <img src="{{ target_user.profile_picture.url }}" 
+                             alt="{{ target_user.display_name }}"
+                             class="rounded-circle me-3"
+                             style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center"
+                             style="width: 40px; height: 40px;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <h5 class="mb-0">Send a message to {{ target_user.display_name }}</h5>
+                            {% if target_user.location %}
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ target_user.location }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message Form -->
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="id_content" class="form-label">
+                                <i class="fas fa-comment me-2"></i>Your Message
+                            </label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.content.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                This will start a new conversation between you and {{ target_user.display_name }}.
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Keep messages respectful and follow community guidelines
+                            </small>
+                            <div>
+                                <a href="{% url 'accounts:user_profile' user_id=target_user.id %}" class="btn btn-outline-secondary me-2">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-1"></i>Start Conversation
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- User Info -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-user me-2"></i>About {{ target_user.display_name }}
+                    </h6>
+                    
+                    {% if target_user.bio %}
+                    <p class="card-text">{{ target_user.bio|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted">No bio available.</p>
+                    {% endif %}
+                    
+                    <div class="row text-center mt-3">
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h6 class="text-primary mb-0">{{ target_user.date_joined|timesince }}</h6>
+                                <small class="text-muted">Member for</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-end">
+                                <h6 class="text-success mb-0">{{ target_user.hobbies.count }}</h6>
+                                <small class="text-muted">Hobb{{ target_user.hobbies.count|pluralize:"y,ies" }}</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <h6 class="text-info mb-0">{{ target_user.date_joined|date:"M Y" }}</h6>
+                            <small class="text-muted">Joined</small>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'accounts:user_profile' user_id=target_user.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user me-1"></i>View Full Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

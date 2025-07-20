@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verified - Hobby Hubby{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Email Verification Complete!</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <h5>Account Activated</h5>
+                    <p>
+                        Your email has been verified successfully and your account is now active.
+                        You can now log in and start using Hobby Hubby!
+                    </p>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary">Go to Home</a>
+                    <a href="/accounts/login/" class="btn btn-outline-primary">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

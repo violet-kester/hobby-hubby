@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+{% load static %}
+{% load search_tags %}
+
+{% block title %}
+{% if query %}
+Search Results for "{{ query }}" - {{ block.super }}
+{% else %}
+Search - {{ block.super }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>
+                        <i class="fas fa-search me-2"></i>
+                        {% if query %}
+                            Search Results
+                        {% else %}
+                            Search Forum
+                        {% endif %}
+                    </h2>
+                    {% if query %}
+                    <p class="text-muted mb-0">
+                        {{ total_results }} result{{ total_results|pluralize }} for "<strong>{{ query }}</strong>"
+                        {% if content_type != 'all' %}
+                            in {{ content_type|title }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{% url 'forums:category_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Forums
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" action="{% url 'forums:search' %}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.query.id_for_label }}" class="form-label">Search Query</label>
+                                {{ form.query }}
+                                {% if form.query.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.query.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.query.help_text }}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ form.content_type.id_for_label }}" class="form-label">Content Type</label>
+                                {{ form.content_type }}
+                                {% if form.content_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.content_type.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.content_type.help_text }}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ form.sort_by.id_for_label }}" class="form-label">Sort By</label>
+                                {{ form.sort_by }}
+                                {% if form.sort_by.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.sort_by.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">{{ form.sort_by.help_text }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Filters (collapsible) -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                                    <i class="fas fa-filter me-1"></i>Advanced Filters
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="collapse mt-3" id="advancedFilters">
+                            <div class="card card-body bg-light">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label for="{{ form.date_from.id_for_label }}" class="form-label">From Date</label>
+                                        {{ form.date_from }}
+                                        {% if form.date_from.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.date_from.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.date_from.help_text }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="{{ form.date_to.id_for_label }}" class="form-label">To Date</label>
+                                        {{ form.date_to }}
+                                        {% if form.date_to.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.date_to.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.date_to.help_text }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="{{ form.author.id_for_label }}" class="form-label">Author</label>
+                                        {{ form.author }}
+                                        {% if form.author.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.author.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.author.help_text }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                                        {{ form.category }}
+                                        {% if form.category.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.category.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.category.help_text }}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Form-level errors -->
+                                {% if form.non_field_errors %}
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <div class="alert alert-danger">
+                                            {{ form.non_field_errors.0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                                {% if query %}
+                                <a href="{% url 'forums:search' %}" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </a>
+                                {% if user.is_authenticated %}
+                                <button type="button" class="btn btn-outline-warning ms-2" id="saveSearchBtn">
+                                    <i class="fas fa-star me-1"></i>Save Search
+                                </button>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if query %}
+            <!-- Search Results -->
+            {% if results %}
+            <div class="row">
+                {% for result in results %}
+                <div class="col-12 mb-3">
+                    <div class="card search-result-card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-1 text-center">
+                                    <!-- Content Type Icon -->
+                                    {% if result.type == 'post' %}
+                                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-comment"></i>
+                                        </div>
+                                    {% elif result.type == 'thread' %}
+                                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-comments"></i>
+                                        </div>
+                                    {% elif result.type == 'user' %}
+                                        <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% elif result.type == 'category' %}
+                                        <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-folder"></i>
+                                        </div>
+                                    {% elif result.type == 'subcategory' %}
+                                        <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-folder-open"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-9">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-1">
+                                                <a href="{{ result.url }}" class="text-decoration-none">
+                                                    {{ result.title|highlight_search_terms:query }}
+                                                </a>
+                                            </h5>
+                                            
+                                            <p class="text-muted mb-2">{% search_result_snippet result.content query 200 %}</p>
+                                            
+                                            <div class="d-flex flex-wrap align-items-center text-muted small">
+                                                <span class="badge bg-light text-dark me-2">
+                                                    {{ result.type|title }}
+                                                </span>
+                                                
+                                                {% if result.author %}
+                                                <span class="me-2">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    <a href="{% url 'accounts:user_profile' user_id=result.author.id %}" class="text-decoration-none">
+                                                        {{ result.author.display_name }}
+                                                    </a>
+                                                </span>
+                                                {% endif %}
+                                                
+                                                {% if result.date %}
+                                                <span class="me-2">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ result.date|timesince }} ago
+                                                </span>
+                                                {% endif %}
+                                                
+                                                <span class="me-2">
+                                                    <i class="fas fa-folder me-1"></i>
+                                                    {{ result.category }}
+                                                    {% if result.subcategory and result.subcategory != 'Main Category' and result.subcategory != 'Subcategory' %}
+                                                        / {{ result.subcategory }}
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2 text-end">
+                                    <a href="{{ result.url }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Search results pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?query={{ query }}&content_type={{ content_type }}&sort_by={{ sort_by }}&page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?query={{ query }}&content_type={{ content_type }}&sort_by={{ sort_by }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?query={{ query }}&content_type={{ content_type }}&sort_by={{ sort_by }}&page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?query={{ query }}&content_type={{ content_type }}&sort_by={{ sort_by }}&page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <!-- No Results -->
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No results found</h4>
+                <p class="text-muted mb-4">
+                    We couldn't find anything matching "<strong>{{ query }}</strong>"
+                    {% if content_type != 'all' %}
+                        in {{ content_type|title }}
+                    {% endif %}.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'forums:search' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Try Another Search
+                    </a>
+                    <a href="{% url 'forums:category_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-2"></i>Browse Forums
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            {% if not query %}
+            <!-- Search Dashboard -->
+            <div class="row">
+                <!-- Search Tips -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-lightbulb me-2"></i>Search Tips
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>What you can search:</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-comment text-primary me-2"></i>Forum posts and discussions</li>
+                                        <li><i class="fas fa-comments text-success me-2"></i>Thread titles and topics</li>
+                                        <li><i class="fas fa-user text-info me-2"></i>User profiles and bios</li>
+                                        <li><i class="fas fa-folder text-warning me-2"></i>Categories and subcategories</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Search tips:</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i>Use specific keywords</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Filter by content type</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Sort results by relevance or date</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Search is case-insensitive</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search History & Saved Searches Sidebar -->
+                <div class="col-lg-4">
+                    {% if user.is_authenticated %}
+                    <!-- Saved Searches -->
+                    {% if saved_searches %}
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-star me-2"></i>Saved Searches
+                            </h6>
+                            <a href="{% url 'forums:saved_searches' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            {% for search in saved_searches|slice:":5" %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="flex-grow-1">
+                                    <a href="{{ search.get_search_url }}" class="text-decoration-none">
+                                        <strong>{{ search.name }}</strong>
+                                    </a>
+                                    <div class="small text-muted">{{ search.query|truncatechars:30 }}</div>
+                                </div>
+                                <div class="small text-muted">
+                                    <span class="badge bg-light text-dark">{{ search.get_content_type_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if saved_searches|length > 5 %}
+                            <div class="text-center mt-2">
+                                <a href="{% url 'forums:saved_searches' %}" class="btn btn-sm btn-outline-secondary">
+                                    View All ({{ saved_searches|length }})
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Recent Searches -->
+                    {% if recent_searches %}
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-history me-2"></i>Recent Searches
+                            </h6>
+                            <a href="{% url 'forums:search_history' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-history"></i>
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            {% for search in recent_searches %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="flex-grow-1">
+                                    <a href="{% url 'forums:search' %}?query={{ search.query|urlencode }}&content_type={{ search.content_type }}" 
+                                       class="text-decoration-none">
+                                        {{ search.query|truncatechars:25 }}
+                                    </a>
+                                    <div class="small text-muted">
+                                        {{ search.created_at|timesince }} ago
+                                        {% if search.results_count > 0 %}
+                                        • {{ search.results_count }} result{{ search.results_count|pluralize }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="small text-muted">
+                                    <span class="badge bg-light text-dark">{{ search.get_content_type_display }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <!-- Login Prompt for History Features -->
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6><i class="fas fa-user me-2"></i>Login for More</h6>
+                            <p class="small text-muted mb-3">
+                                Login to save searches and view your search history.
+                            </p>
+                            <a href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.search-result-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.search-result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.search-result-card .card-body {
+    padding: 1.25rem;
+}
+
+.search-result-card h5 a {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.search-result-card h5 a:hover {
+    color: #0a58ca;
+    text-decoration: underline !important;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+/* Search highlighting styles */
+.search-highlight {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.1em 0.2em;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    border: 1px solid #ffeaa7;
+}
+
+.search-result-card h5 a .search-highlight {
+    background-color: #ffd60a;
+    color: #664d03;
+}
+
+.text-muted .search-highlight {
+    background-color: #e7f3ff;
+    color: #0a58ca;
+    border-color: #b3d9ff;
+}
+
+@media (max-width: 768px) {
+    .search-result-card .row > div:first-child {
+        display: none;
+    }
+    
+    .search-result-card .col-md-9 {
+        flex: 0 0 75%;
+        max-width: 75%;
+    }
+    
+    .search-result-card .col-md-2 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+}
+</style>
+
+<!-- Save Search Modal -->
+{% if user.is_authenticated and query %}
+<div class="modal fade" id="saveSearchModal" tabindex="-1" aria-labelledby="saveSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveSearchModalLabel">Save Search</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="saveSearchForm">
+                    <div class="mb-3">
+                        <label for="searchName" class="form-label">Search Name</label>
+                        <input type="text" class="form-control" id="searchName" name="name" maxlength="100" required>
+                        <div class="form-text">Give this search a memorable name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="searchQuery" class="form-label">Query</label>
+                        <input type="text" class="form-control" id="searchQuery" name="query" value="{{ query }}" readonly>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="searchContentType" class="form-label">Content Type</label>
+                            <select class="form-select" id="searchContentType" name="content_type">
+                                <option value="all" {% if content_type == 'all' %}selected{% endif %}>All Content</option>
+                                <option value="posts" {% if content_type == 'posts' %}selected{% endif %}>Posts</option>
+                                <option value="threads" {% if content_type == 'threads' %}selected{% endif %}>Threads</option>
+                                <option value="users" {% if content_type == 'users' %}selected{% endif %}>Users</option>
+                                <option value="categories" {% if content_type == 'categories' %}selected{% endif %}>Categories</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="searchSortBy" class="form-label">Sort By</label>
+                            <select class="form-select" id="searchSortBy" name="sort_by">
+                                <option value="relevance" {% if sort_by == 'relevance' %}selected{% endif %}>Relevance</option>
+                                <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
+                                <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
+                                <option value="author" {% if sort_by == 'author' %}selected{% endif %}>Author A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmSaveSearch">
+                    <i class="fas fa-star me-1"></i>Save Search
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Advanced Filters functionality
+    const advancedFilters = document.getElementById('advancedFilters');
+    const filterButton = document.querySelector('[data-bs-target="#advancedFilters"]');
+    
+    // Check if any advanced filters have values and expand if so
+    const dateFromInput = document.querySelector('#id_date_from');
+    const dateToInput = document.querySelector('#id_date_to');
+    const authorInput = document.querySelector('#id_author');
+    const categorySelect = document.querySelector('#id_category');
+    
+    const hasActiveFilters = (
+        (dateFromInput && dateFromInput.value) ||
+        (dateToInput && dateToInput.value) ||
+        (authorInput && authorInput.value) ||
+        (categorySelect && categorySelect.value)
+    );
+    
+    if (hasActiveFilters) {
+        const bsCollapse = new bootstrap.Collapse(advancedFilters, {
+            show: true
+        });
+        filterButton.setAttribute('aria-expanded', 'true');
+        filterButton.innerHTML = '<i class="fas fa-filter me-1"></i>Advanced Filters (Active)';
+        filterButton.classList.remove('btn-outline-secondary');
+        filterButton.classList.add('btn-outline-primary');
+    }
+    
+    // Update button text when collapsed/expanded
+    advancedFilters.addEventListener('shown.bs.collapse', function() {
+        filterButton.innerHTML = '<i class="fas fa-filter me-1"></i>Hide Filters';
+    });
+    
+    advancedFilters.addEventListener('hidden.bs.collapse', function() {
+        const text = hasActiveFilters ? 'Advanced Filters (Active)' : 'Advanced Filters';
+        filterButton.innerHTML = '<i class="fas fa-filter me-1"></i>' + text;
+    });
+    
+    // Save Search Modal functionality
+    const saveSearchBtn = document.getElementById('saveSearchBtn');
+    const confirmSaveBtn = document.getElementById('confirmSaveSearch');
+    
+    if (saveSearchBtn) {
+        const saveSearchModal = new bootstrap.Modal(document.getElementById('saveSearchModal'));
+        
+        saveSearchBtn.addEventListener('click', function() {
+            // Pre-populate with current search query
+            document.getElementById('searchName').value = `Search for "${document.getElementById('searchQuery').value}"`;
+            saveSearchModal.show();
+        });
+        
+        confirmSaveBtn.addEventListener('click', function() {
+            const form = document.getElementById('saveSearchForm');
+            const formData = new FormData(form);
+            
+            // Disable button during request
+            confirmSaveBtn.disabled = true;
+            confirmSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+            
+            fetch('{% url "forums:save_search" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    saveSearchModal.hide();
+                    // Show success message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show';
+                    alert.innerHTML = `
+                        <i class="fas fa-check me-2"></i>${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.container.mt-4').insertBefore(alert, document.querySelector('.container.mt-4').firstChild);
+                    
+                    // Reset form
+                    form.reset();
+                } else {
+                    alert(data.error || 'Failed to save search');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to save search');
+            })
+            .finally(() => {
+                // Re-enable button
+                confirmSaveBtn.disabled = false;
+                confirmSaveBtn.innerHTML = '<i class="fas fa-star me-1"></i>Save Search';
+            });
+        });
+    }
+});
+</script>
+{% endif %}
+
+{% csrf_token %}
+{% endblock %}

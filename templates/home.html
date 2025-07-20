@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Hobby Hubby{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Welcome to Hobby Hubby</h1>
+        <p class="lead">Connect with fellow hobby enthusiasts and share your passion!</p>
+        
+        {% if user.is_authenticated %}
+            <p>Welcome back, {{ user.display_name }}!</p>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-primary">View Profile</a>
+        {% else %}
+            <p>Join our community today!</p>
+            <a href="{% url 'accounts:register' %}" class="btn btn-primary">Register</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary">Login</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

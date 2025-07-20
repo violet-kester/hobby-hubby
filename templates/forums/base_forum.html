@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Forum - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'forums:category_list' %}">Forums</a></li>
+            {% block breadcrumb %}{% endblock %}
+        </ol>
+    </nav>
+    
+    {% block forum_content %}{% endblock %}
+</div>
+{% endblock %}

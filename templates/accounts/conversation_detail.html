@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Conversation with {{ other_participant.display_name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <!-- Header -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'accounts:inbox' %}" class="btn btn-outline-secondary btn-sm me-3">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Inbox
+                            </a>
+                            
+                            {% if other_participant.profile_picture %}
+                            <img src="{{ other_participant.profile_picture.url }}" 
+                                 alt="{{ other_participant.display_name }}"
+                                 class="rounded-circle me-3"
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <div>
+                                <h5 class="mb-0">
+                                    <a href="{% url 'accounts:user_profile' user_id=other_participant.id %}" 
+                                       class="text-decoration-none">
+                                        {{ other_participant.display_name }}
+                                    </a>
+                                </h5>
+                                <small class="text-muted">
+                                    {% if other_participant.location %}
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ other_participant.location }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <small class="text-muted">{{ message_count }} message{{ message_count|pluralize }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages -->
+            <div class="card">
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;" id="messages-container">
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="message-wrapper mb-3 {% if message.sender == request.user %}own-message{% else %}other-message{% endif %}">
+                            <div class="d-flex {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                                <div class="message-bubble {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded-3"
+                                     style="max-width: 75%;">
+                                    <p class="mb-1">{{ message.content|linebreaks }}</p>
+                                    <small class="{% if message.sender == request.user %}text-white-50{% else %}text-muted{% endif %}">
+                                        {% if message.sender == request.user %}
+                                            You
+                                        {% else %}
+                                            {{ message.sender.display_name }}
+                                        {% endif %}
+                                        • {{ message.sent_at|date:"M j, Y g:i A" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No messages yet</h6>
+                            <p class="text-muted">Start the conversation below!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if messages.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Messages pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if messages.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ messages.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ messages.number }} of {{ messages.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if messages.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ messages.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ messages.paginator.num_pages }}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Message Compose Form -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <form method="post" action="{% url 'accounts:send_message' conversation_id=conversation.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_content" class="form-label">Send a message</label>
+                            <textarea class="form-control" 
+                                      id="id_content" 
+                                      name="content" 
+                                      rows="4" 
+                                      placeholder="Type your message here..." 
+                                      required></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Keep messages respectful and follow community guidelines
+                            </small>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-bubble {
+    word-wrap: break-word;
+    position: relative;
+}
+
+.own-message .message-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-bottom-color: var(--bs-primary);
+    border-right: 0;
+    margin-bottom: -8px;
+}
+
+.other-message .message-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-bottom-color: var(--bs-light);
+    border-left: 0;
+    margin-bottom: -8px;
+}
+
+#messages-container {
+    background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+}
+</style>
+
+<script>
+// Auto-scroll to bottom of messages
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
+</script>
+{% endblock %}
