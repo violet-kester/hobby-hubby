@@ -319,6 +319,34 @@ class UserBookmarksView(LoginRequiredMixin, ListView):
         ).order_by('-created_at')
 
 
+class UserPostsView(ListView):
+    """View for displaying a user's posts."""
+    template_name = 'accounts/user_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Get posts for the specified user."""
+        from forums.models import Post
+        self.profile_user = get_object_or_404(User, id=self.kwargs['user_id'])
+        return Post.objects.filter(
+            author=self.profile_user
+        ).select_related(
+            'thread__subcategory__category',
+            'author'
+        ).prefetch_related(
+            'votes'
+        ).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        """Add additional context."""
+        context = super().get_context_data(**kwargs)
+        context['profile_user'] = self.profile_user
+        context['is_own_profile'] = self.request.user == self.profile_user
+        context['post_count'] = self.get_queryset().count()
+        return context
+
+
 @login_required
 def upload_photo_view(request):
     """Photo upload view."""

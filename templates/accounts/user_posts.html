@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.display_name }}'s Posts - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'accounts:user_profile' user_id=profile_user.id %}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                </a>
+                <div>
+                    <h1 class="mb-1">{{ profile_user.display_name }}'s Posts</h1>
+                    <p class="text-muted mb-0">{{ post_count }} post{{ post_count|pluralize }}</p>
+                </div>
+            </div>
+
+            <!-- Posts List -->
+            {% if posts %}
+            <div class="row">
+                {% for post in posts %}
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Post Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    {% if post.author.profile_picture %}
+                                    <img src="{{ post.author.profile_picture.url }}"
+                                         alt="{{ post.author.display_name }}"
+                                         class="rounded-circle me-3"
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ post.author.display_name }}</h6>
+                                        <small class="text-muted">
+                                            Posted {{ post.created_at|timesince }} ago
+                                            {% if post.updated_at != post.created_at %}
+                                                • Edited {{ post.updated_at|timesince }} ago
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-thumbs-up me-1"></i>{{ post.vote_count }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Thread Context -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center text-muted small">
+                                    <i class="{{ post.thread.subcategory.category.icon|default:'fas fa-folder' }} me-2"></i>
+                                    <a href="{% url 'forums:subcategory_detail' category_slug=post.thread.subcategory.category.slug subcategory_slug=post.thread.subcategory.slug %}"
+                                       class="text-decoration-none text-muted me-2">
+                                        {{ post.thread.subcategory.name }}
+                                    </a>
+                                    <i class="fas fa-chevron-right me-2"></i>
+                                    <a href="{% url 'forums:thread_detail' category_slug=post.thread.subcategory.category.slug subcategory_slug=post.thread.subcategory.slug thread_slug=post.thread.slug %}"
+                                       class="text-decoration-none">
+                                        {{ post.thread.title }}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Post Content -->
+                            <div class="post-content">
+                                {{ post.content|linebreaks }}
+                            </div>
+
+                            <!-- Post Actions -->
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <div class="d-flex align-items-center">
+                                    <a href="{% url 'forums:thread_detail' category_slug=post.thread.subcategory.category.slug subcategory_slug=post.thread.subcategory.slug thread_slug=post.thread.slug %}#post-{{ post.id }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i>View in Thread
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    Post #{{ post.id }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Posts pagination">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- No Posts -->
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Posts Yet</h5>
+                {% if is_own_profile %}
+                    <p class="text-muted mb-3">Start participating in forum discussions!</p>
+                    <a href="{% url 'forums:category_list' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Explore Forums
+                    </a>
+                {% else %}
+                    <p class="text-muted">{{ profile_user.display_name }} hasn't made any posts yet.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.post-content {
+    max-height: 300px;
+    overflow: hidden;
+    position: relative;
+}
+
+.post-content p:last-child {
+    margin-bottom: 0;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+</style>
+{% endblock %}

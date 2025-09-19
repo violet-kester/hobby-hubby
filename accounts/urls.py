@@ -30,6 +30,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),  # Redirects to user's own profile view
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('user/<int:user_id>/', views.user_profile_view, name='user_profile'),
+    path('user/<int:user_id>/posts/', views.UserPostsView.as_view(), name='user_posts'),
     path('hobbies/', views.manage_hobbies_view, name='manage_hobbies'),
     path('bookmarks/', views.UserBookmarksView.as_view(), name='bookmarks'),
     

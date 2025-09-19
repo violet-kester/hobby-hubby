@@ -4,7 +4,8 @@
       "Bash(python manage.py runserver:*)",
       "Bash(python3 manage.py runserver:*)",
       "Bash(source:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []

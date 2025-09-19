@@ -52,6 +52,25 @@
                         <label for="{{ form.content.id_for_label }}" class="form-label">
                             Content <span class="text-danger">*</span>
                         </label>
+
+                        <!-- Rich Text Formatting Toolbar -->
+                        <div class="rich-text-toolbar mb-2">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Text formatting">
+                                <button type="button" class="btn btn-outline-secondary" id="bold-btn" title="Bold">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="italic-btn" title="Italic">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="underline-btn" title="Underline">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted ms-2">
+                                Select text and click formatting buttons, or use keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+U)
+                            </small>
+                        </div>
+
                         {{ form.content }}
                         {% if form.content.errors %}
                             <div class="invalid-feedback d-block">
@@ -120,15 +139,93 @@
     </div>
 </div>
 
-<!-- AJAX Preview JavaScript -->
+<!-- Rich Text Formatting and AJAX Preview JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const previewBtn = document.getElementById('preview-btn');
     const previewArea = document.getElementById('preview-area');
     const previewContent = document.getElementById('preview-content');
     const contentField = document.getElementById('{{ form.content.id_for_label }}');
-    
+
+    // Rich text formatting buttons
+    const boldBtn = document.getElementById('bold-btn');
+    const italicBtn = document.getElementById('italic-btn');
+    const underlineBtn = document.getElementById('underline-btn');
+
     let isPreviewMode = false;
+
+    // Rich text formatting functions
+    function insertFormatting(openTag, closeTag) {
+        const textarea = contentField;
+
+        // Store current selection before any operations
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textarea.value.substring(start, end);
+
+        if (selectedText.length > 0) {
+            // Wrap selected text
+            const beforeText = textarea.value.substring(0, start);
+            const afterText = textarea.value.substring(end);
+            const newText = beforeText + openTag + selectedText + closeTag + afterText;
+
+            textarea.value = newText;
+
+            // Maintain focus and restore selection around the formatted text
+            textarea.focus();
+            const newStart = start + openTag.length;
+            const newEnd = newStart + selectedText.length;
+            textarea.setSelectionRange(newStart, newEnd);
+        } else {
+            // Insert tags at cursor position
+            const beforeText = textarea.value.substring(0, start);
+            const afterText = textarea.value.substring(start);
+            const newText = beforeText + openTag + closeTag + afterText;
+
+            textarea.value = newText;
+
+            // Position cursor between tags
+            textarea.focus();
+            const newCursorPos = start + openTag.length;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }
+    }
+
+    // Button click handlers
+    boldBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        insertFormatting('<b>', '</b>');
+    });
+
+    italicBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        insertFormatting('<i>', '</i>');
+    });
+
+    underlineBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        insertFormatting('<u>', '</u>');
+    });
+
+    // Keyboard shortcuts
+    contentField.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key.toLowerCase()) {
+                case 'b':
+                    e.preventDefault();
+                    insertFormatting('<b>', '</b>');
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    insertFormatting('<i>', '</i>');
+                    break;
+                case 'u':
+                    e.preventDefault();
+                    insertFormatting('<u>', '</u>');
+                    break;
+            }
+        }
+    });
     
     previewBtn.addEventListener('click', function() {
         if (!isPreviewMode) {

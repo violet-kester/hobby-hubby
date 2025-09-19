@@ -258,16 +258,18 @@
                         <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <div class="card border-0 bg-primary text-white">
-                                        <div class="card-body text-center">
-                                            <i class="fas fa-comments fa-3x mb-2"></i>
-                                            <h4>{{ post_count }}</h4>
-                                            <small>Total Posts</small>
+                                    <a href="{% url 'accounts:user_posts' user_id=profile_user.id %}" class="text-decoration-none">
+                                        <div class="card border-0 bg-primary text-white activity-card">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-comments fa-3x mb-2"></i>
+                                                <h4>{{ post_count }}</h4>
+                                                <small>Total Posts</small>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </a>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card border-0 bg-success text-white">
+                                    <div class="card border-0 bg-success text-white activity-card">
                                         <div class="card-body text-center">
                                             <i class="fas fa-heart fa-3x mb-2"></i>
                                             <h4>{{ hobbies.count }}</h4>
@@ -276,11 +278,11 @@
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <div class="card border-0 bg-info text-white">
+                                    <div class="card border-0 bg-info text-white activity-card">
                                         <div class="card-body text-center">
                                             <i class="fas fa-calendar fa-3x mb-2"></i>
-                                            <h4>{{ profile_user.date_joined|timesince }}</h4>
-                                            <small>Member for</small>
+                                            <h4 class="single-line-text">{{ profile_user.date_joined|date:"M Y" }}</h4>
+                                            <small>Member since</small>
                                         </div>
                                     </div>
                                 </div>
@@ -301,4 +303,61 @@
         </div>
     </div>
 </div>
+
+<style>
+.activity-card {
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.activity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+a .activity-card {
+    cursor: pointer;
+}
+
+a .activity-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.activity-card .card-body {
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.activity-card h4 {
+    height: 1.5rem;
+    line-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.single-line-text {
+    font-size: 1.5rem !important;
+}
+
+/* Ensure consistent text color for linked cards */
+a:hover .activity-card {
+    color: white !important;
+}
+
+a .activity-card h4,
+a .activity-card small,
+a .activity-card i {
+    color: white !important;
+}
+</style>
 {% endblock %}

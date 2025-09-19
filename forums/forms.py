@@ -4,12 +4,36 @@ Forms for forum thread and post creation.
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
+import bleach
 from .models import Thread, Post
+
+# Allowed HTML tags and attributes for rich text formatting
+ALLOWED_TAGS = ['b', 'strong', 'i', 'em', 'u', 'br', 'p']
+ALLOWED_ATTRIBUTES = {}
+
+def clean_rich_text(content):
+    """Clean content while preserving allowed HTML formatting."""
+    if not content:
+        return content
+
+    # Convert newlines to <br> tags before sanitizing
+    content = content.replace('\r\n', '\n').replace('\r', '\n')
+    content = content.replace('\n', '<br>')
+
+    # Use bleach to sanitize HTML while keeping allowed tags
+    cleaned = bleach.clean(
+        content,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        strip=True
+    )
+
+    return cleaned
 
 
 class ThreadCreateForm(forms.Form):
     """Form for creating new threads."""
-    
+
     title = forms.CharField(
         max_length=200,
         widget=forms.TextInput(attrs={
@@ -19,74 +43,78 @@ class ThreadCreateForm(forms.Form):
         }),
         help_text='Maximum 200 characters'
     )
-    
+
     content = forms.CharField(
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control rich-text-editor',
             'rows': 8,
             'placeholder': 'Write your message...',
             'required': True
         }),
-        help_text='Share your thoughts, questions, or ideas'
+        help_text='Share your thoughts, questions, or ideas. Use the toolbar to format text.'
     )
-    
+
     def clean_title(self):
         """Validate and clean the title field."""
         title = self.cleaned_data.get('title', '').strip()
-        
+
         if not title:
             raise ValidationError('Title cannot be empty.')
-        
+
         if len(title) > 200:
             raise ValidationError('Title cannot exceed 200 characters.')
-        
+
         # Strip any HTML tags for security
         title = strip_tags(title)
-        
+
         return title
-    
+
     def clean_content(self):
         """Validate and clean the content field."""
         content = self.cleaned_data.get('content', '').strip()
-        
+
         if not content:
             raise ValidationError('Content cannot be empty.')
-        
-        if len(content) > 10000:  # Reasonable limit
+
+        # Strip HTML for length check
+        content_length = len(strip_tags(content))
+        if content_length > 10000:  # Reasonable limit
             raise ValidationError('Content cannot exceed 10,000 characters.')
-        
-        # Basic HTML stripping for security (can be enhanced later for markdown)
-        content = strip_tags(content)
-        
+
+        # Clean content while preserving allowed formatting
+        content = clean_rich_text(content)
+
         return content
 
 
 class PostCreateForm(forms.Form):
     """Form for creating replies to threads."""
-    
+
     content = forms.CharField(
         widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control rich-text-editor',
             'rows': 6,
             'placeholder': 'Write your reply...',
             'required': True
         }),
-        help_text='Share your thoughts on this discussion'
+        help_text='Share your thoughts on this discussion. Use the toolbar to format text.'
     )
-    
+
     def clean_content(self):
         """Validate and clean the content field."""
         content = self.cleaned_data.get('content', '').strip()
-        
+
         if not content:
             raise ValidationError('Content cannot be empty.')
-        
-        if len(content) > 10000:  # Reasonable limit
+
+        # Strip HTML for length check
+        content_length = len(strip_tags(content))
+        if content_length > 10000:  # Reasonable limit
             raise ValidationError('Content cannot exceed 10,000 characters.')
-        
-        # Basic HTML stripping for security (can be enhanced later for markdown)
-        content = strip_tags(content)
-        
+
+        # Clean content while preserving allowed formatting
+        content = clean_rich_text(content)
+
         return content
 
 
