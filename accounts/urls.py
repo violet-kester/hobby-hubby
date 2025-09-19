@@ -27,7 +27,7 @@ urlpatterns = [
     path('password/reset/complete/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
     
     # Profile
-    path('profile/', views.profile_edit_view, name='profile'),  # Keep for backwards compatibility
+    path('profile/', views.profile_view, name='profile'),  # Redirects to user's own profile view
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('user/<int:user_id>/', views.user_profile_view, name='user_profile'),
     path('hobbies/', views.manage_hobbies_view, name='manage_hobbies'),

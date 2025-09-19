@@ -1,0 +1,220 @@
+/**
+ * Hobby Hubby Jewel Tones Color Palette
+ * Design system colors for the 6 main hobby categories
+ */
+
+:root {
+  /* Primary Category Colors - Jewel Tones */
+  --hh-emerald: #2F7D5C;      /* Creative & Arts - rich forest green */
+  --hh-sapphire: #1E3A8A;     /* Sports & Fitness - deep royal blue */
+  --hh-amethyst: #7C3AED;     /* Games & Entertainment - rich purple */
+  --hh-ruby: #B91C1C;         /* Technology & Science - deep crimson */
+  --hh-topaz: #D97706;        /* Food & Culinary - warm amber */
+  --hh-onyx: #374151;         /* Lifestyle & Social - sophisticated dark gray */
+  
+  /* Lighter tints for backgrounds and borders */
+  --hh-emerald-light: #10B981;
+  --hh-sapphire-light: #2563EB;
+  --hh-amethyst-light: #8B5CF6;
+  --hh-ruby-light: #DC2626;
+  --hh-topaz-light: #F59E0B;
+  --hh-onyx-light: #6B7280;
+
+  /* Medium tones for better gradient transitions */
+  --hh-emerald-medium: #059669;
+  --hh-sapphire-medium: #2563EB;
+  --hh-amethyst-medium: #7C3AED;
+  --hh-ruby-medium: #DC2626;
+  --hh-topaz-medium: #F59E0B;
+  --hh-onyx-medium: #4B5563;
+  
+  /* Darker shades for text and accents */
+  --hh-emerald-dark: #065F46;
+  --hh-sapphire-dark: #1E3A8A;
+  --hh-amethyst-dark: #5B21B6;
+  --hh-ruby-dark: #7F1D1D;
+  --hh-topaz-dark: #92400E;
+  --hh-onyx-dark: #1F2937;
+  
+  /* Ultra light tints for subtle backgrounds */
+  --hh-emerald-ultra-light: #ECFDF5;
+  --hh-sapphire-ultra-light: #EFF6FF;
+  --hh-amethyst-ultra-light: #F3E8FF;
+  --hh-ruby-ultra-light: #FEF2F2;
+  --hh-topaz-ultra-light: #FFFBEB;
+  --hh-onyx-ultra-light: #F9FAFB;
+}
+
+/* Category-specific styling classes */
+.category-creative-arts {
+  --category-color: var(--hh-emerald);
+  --category-color-light: var(--hh-emerald-light);
+  --category-color-dark: var(--hh-emerald-dark);
+  --category-color-ultra-light: var(--hh-emerald-ultra-light);
+}
+
+.category-sports-fitness {
+  --category-color: var(--hh-sapphire);
+  --category-color-light: var(--hh-sapphire-light);
+  --category-color-dark: var(--hh-sapphire-dark);
+  --category-color-ultra-light: var(--hh-sapphire-ultra-light);
+}
+
+.category-games-entertainment {
+  --category-color: var(--hh-amethyst);
+  --category-color-light: var(--hh-amethyst-light);
+  --category-color-dark: var(--hh-amethyst-dark);
+  --category-color-ultra-light: var(--hh-amethyst-ultra-light);
+}
+
+.category-technology-science {
+  --category-color: var(--hh-ruby);
+  --category-color-light: var(--hh-ruby-light);
+  --category-color-dark: var(--hh-ruby-dark);
+  --category-color-ultra-light: var(--hh-ruby-ultra-light);
+}
+
+.category-food-culinary {
+  --category-color: var(--hh-topaz);
+  --category-color-light: var(--hh-topaz-light);
+  --category-color-dark: var(--hh-topaz-dark);
+  --category-color-ultra-light: var(--hh-topaz-ultra-light);
+}
+
+.category-lifestyle-social {
+  --category-color: var(--hh-onyx);
+  --category-color-light: var(--hh-onyx-light);
+  --category-color-dark: var(--hh-onyx-dark);
+  --category-color-ultra-light: var(--hh-onyx-ultra-light);
+}
+
+/* Category banner styling with lighter, smoother gradients */
+.category-banner {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    var(--category-color) 0%,
+    var(--category-color) 20%,
+    var(--category-color-light) 45%,
+    var(--category-color-light) 70%,
+    rgba(255, 255, 255, 0.1) 90%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  background-blend-mode: multiply;
+  background-color: var(--category-color);
+  color: white;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  background-size: 300% 300%;
+  animation: gradientShift 12s ease-in-out infinite;
+  /* Force hardware acceleration and better gradient rendering */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.category-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 60%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.01) 25%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.05) 75%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  pointer-events: none;
+}
+
+.category-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 60%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  pointer-events: none;
+}
+
+.category-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 1.5rem;
+}
+
+.category-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.category-description {
+  font-size: 1rem;
+  opacity: 0.9;
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.category-icon {
+  font-size: 3rem;
+  opacity: 0.8;
+  margin-right: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Subcategory styling within category cards */
+.subcategory-item {
+  border-left: 4px solid var(--category-color-light);
+  transition: all 0.3s ease;
+}
+
+.subcategory-item:hover {
+  border-left-color: var(--category-color);
+  background-color: var(--category-color-ultra-light);
+  transform: translateX(4px);
+}
+
+.subcategory-badge {
+  background-color: var(--category-color-light) !important;
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .category-banner {
+    min-height: 100px;
+  }
+  
+  .category-title {
+    font-size: 1.5rem;
+  }
+  
+  .category-icon {
+    font-size: 2rem;
+    margin-right: 0.75rem;
+  }
+}

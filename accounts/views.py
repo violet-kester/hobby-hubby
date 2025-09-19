@@ -252,6 +252,12 @@ def user_profile_view(request, user_id):
 
 
 @login_required
+def profile_view(request):
+    """Redirect to user's own profile view."""
+    return redirect('accounts:user_profile', user_id=request.user.id)
+
+
+@login_required
 def profile_edit_view(request):
     """Profile edit view."""
     if request.method == 'POST':
@@ -268,7 +274,10 @@ def profile_edit_view(request):
 
 @login_required
 def manage_hobbies_view(request):
-    """Hobby management view."""
+    """Hobby management view with organized categories."""
+    from forums.models import Category, Subcategory
+    from .models import UserHobby
+
     if request.method == 'POST':
         form = HobbyManagementForm(request.user, request.POST)
         if form.is_valid():
@@ -277,8 +286,20 @@ def manage_hobbies_view(request):
             return redirect('accounts:user_profile', user_id=request.user.id)
     else:
         form = HobbyManagementForm(request.user)
-    
-    return render(request, 'accounts/manage_hobbies.html', {'form': form})
+
+    # Get categories with their subcategories organized
+    categories_with_subs = Category.objects.prefetch_related('subcategories').order_by('name')
+
+    # Get user's current hobby subcategories
+    user_hobbies = set(UserHobby.objects.filter(user=request.user).values_list('subcategory_id', flat=True))
+
+    context = {
+        'form': form,
+        'categories_with_subs': categories_with_subs,
+        'user_hobbies': user_hobbies,
+    }
+
+    return render(request, 'accounts/manage_hobbies.html', context)
 
 
 class UserBookmarksView(LoginRequiredMixin, ListView):

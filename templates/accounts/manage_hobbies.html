@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
-        <div class="col-lg-8 offset-lg-2">
+        <div class="col-lg-10 offset-lg-1">
             <div class="card">
                 <div class="card-header">
                     <h4 class="mb-0">
@@ -15,24 +15,56 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted mb-4">
-                        Select the topics and subcategories you're interested in. This helps other users 
+                        Select the topics and subcategories you're interested in. This helps other users
                         find you and creates a more personalized experience on the forum.
                     </p>
-                    
-                    <form method="post">
+
+                    <form method="post" id="hobbiesForm">
                         {% csrf_token %}
-                        
-                        {% if form.subcategories %}
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-list me-2"></i>Available Topics
-                            </label>
-                            <div class="form-text mb-3">{{ form.subcategories.help_text }}</div>
-                            
-                            <!-- Use Django's built-in form field rendering -->
-                            <div class="row">
-                                {{ form.subcategories }}
+
+                        {% if categories_with_subs %}
+                        <!-- Organized Category Blocks -->
+                        <div class="hobbies-categories">
+                            {% for category in categories_with_subs %}
+                            <div class="category-block mb-5">
+                                <!-- Category Header -->
+                                <div class="category-header mb-3 p-3 rounded category-{{ category.color_theme }}">
+                                    <h5 class="mb-0 d-flex align-items-center">
+                                        <i class="{{ category.icon|default:'fas fa-circle' }} me-2"></i>
+                                        <strong>{{ category.name }}</strong>
+                                    </h5>
+                                </div>
+
+                                <!-- Subcategories Grid -->
+                                <div class="subcategories-grid">
+                                    {% for subcategory in category.subcategories.all %}
+                                    <div class="subcategory-item {% if subcategory.id in user_hobbies %}selected{% endif %}"
+                                         data-subcategory-id="{{ subcategory.id }}">
+                                        <!-- Hidden checkbox for form submission -->
+                                        <input type="checkbox"
+                                               name="subcategories"
+                                               value="{{ subcategory.id }}"
+                                               id="sub_{{ subcategory.id }}"
+                                               style="display: none;"
+                                               {% if subcategory.id in user_hobbies %}checked{% endif %}>
+
+                                        <!-- Card Content -->
+                                        <div class="card-content">
+                                            <strong>{{ subcategory.name }}</strong>
+                                            <small class="text-muted d-block">
+                                                {{ subcategory.member_count }} members
+                                            </small>
+                                        </div>
+
+                                        <!-- Selection Indicator -->
+                                        <div class="selection-indicator">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
+                            {% endfor %}
                         </div>
                         {% else %}
                         <div class="text-center py-4">
@@ -41,7 +73,8 @@
                             <p class="text-muted">No forum categories have been created yet. Please check back later.</p>
                         </div>
                         {% endif %}
-                        
+
+                        <!-- Form Errors -->
                         {% if form.subcategories.errors %}
                         <div class="alert alert-danger mb-3">
                             {% for error in form.subcategories.errors %}
@@ -49,9 +82,9 @@
                             {% endfor %}
                         </div>
                         {% endif %}
-                        
+
                         <!-- Buttons -->
-                        <div class="d-flex justify-content-between mt-4">
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
                             <a href="{% url 'accounts:user_profile' user_id=user.id %}" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>Cancel
                             </a>
@@ -62,23 +95,25 @@
                     </form>
                 </div>
             </div>
-            
-            <!-- Current Hobbies -->
+
+            <!-- Current Hobbies Summary -->
             {% if user.hobbies.exists %}
             <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-check-circle me-2 text-success"></i>Your Current Hobbies
+                        <i class="fas fa-check-circle me-2 text-success"></i>Your Current Hobbies ({{ user.hobbies.count }})
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         {% for hobby in user.hobbies.all %}
-                        <div class="col-md-6 mb-2">
+                        <div class="col-md-6 col-lg-4 mb-2">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-heart text-danger me-2"></i>
-                                <span>{{ hobby.subcategory.category.name }} - {{ hobby.subcategory.name }}</span>
-                                <small class="text-muted ms-auto">{{ hobby.joined_at|date:"M Y" }}</small>
+                                <div>
+                                    <span class="fw-bold">{{ hobby.subcategory.name }}</span>
+                                    <small class="text-muted d-block">{{ hobby.subcategory.category.name }}</small>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -91,17 +126,205 @@
 </div>
 
 <style>
-/* Custom styling for better checkbox layout */
-.form-check {
-    padding-left: 1.5em;
+/* Category Headers */
+.category-header {
+    border-left: 4px solid;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
 }
 
-.form-check-input {
-    margin-top: 0.3em;
+/* Category color themes */
+.category-creative-arts {
+    background: linear-gradient(135deg, #2F7D5C 0%, #3B9F72 100%);
+    color: white;
+    border-left-color: #2F7D5C;
 }
 
-.card-header h6 {
-    font-weight: 600;
+.category-sports-fitness {
+    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+    color: white;
+    border-left-color: #1E3A8A;
+}
+
+.category-games-entertainment {
+    background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+    color: white;
+    border-left-color: #7C3AED;
+}
+
+.category-technology-science {
+    background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);
+    color: white;
+    border-left-color: #B91C1C;
+}
+
+.category-food-culinary {
+    background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+    color: white;
+    border-left-color: #D97706;
+}
+
+.category-lifestyle-social {
+    background: linear-gradient(135deg, #374151 0%, #4B5563 100%);
+    color: white;
+    border-left-color: #374151;
+}
+
+/* Subcategories Grid */
+.subcategories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 0 15px;
+}
+
+.subcategory-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.subcategory-item:hover {
+    background: #e9ecef;
+    border-color: #6c757d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.subcategory-item.selected {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+}
+
+.subcategory-item.selected:hover {
+    background: linear-gradient(135deg, #c3e6cb 0%, #b8dabc 100%);
+    border-color: #20c997;
+    transform: translateY(-2px);
+}
+
+.card-content {
+    flex: 1;
+    text-align: left;
+}
+
+.selection-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-left: 10px;
+    opacity: 0.3;
+}
+
+.subcategory-item.selected .selection-indicator {
+    background: #28a745;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.selection-indicator i {
+    color: white;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.subcategory-item.selected .selection-indicator i {
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .subcategories-grid {
+        grid-template-columns: 1fr;
+        padding: 0;
+    }
+
+    .subcategory-item {
+        padding: 12px;
+    }
+}
+
+/* Animation for selections */
+.subcategory-item {
+    animation: none;
+}
+
+.subcategory-item.newly-selected {
+    animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle card-based selection without visible checkboxes
+    const hobbyCards = document.querySelectorAll('.subcategory-item');
+
+    hobbyCards.forEach(card => {
+        const hiddenCheckbox = card.querySelector('input[type="checkbox"]');
+
+        // Handle clicking on the entire card
+        card.addEventListener('click', function(e) {
+            // Prevent event bubbling
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Toggle the hidden checkbox
+            hiddenCheckbox.checked = !hiddenCheckbox.checked;
+
+            // Update visual state
+            if (hiddenCheckbox.checked) {
+                card.classList.add('selected');
+                card.classList.add('newly-selected');
+                setTimeout(() => card.classList.remove('newly-selected'), 600);
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+
+        // Handle keyboard accessibility (Enter and Space)
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                card.click();
+            }
+        });
+
+        // Make cards focusable for accessibility
+        if (!card.hasAttribute('tabindex')) {
+            card.setAttribute('tabindex', '0');
+        }
+
+        // Add ARIA attributes for accessibility
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-pressed', hiddenCheckbox.checked ? 'true' : 'false');
+
+        // Update ARIA state when selection changes
+        const updateAriaState = () => {
+            card.setAttribute('aria-pressed', hiddenCheckbox.checked ? 'true' : 'false');
+        };
+
+        // Listen for changes to update ARIA state
+        hiddenCheckbox.addEventListener('change', updateAriaState);
+    });
+});
+</script>
 {% endblock %}

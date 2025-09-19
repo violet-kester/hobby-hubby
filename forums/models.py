@@ -10,21 +10,19 @@ User = get_user_model()
 
 
 class Category(TimestampedModel):
-    COLOR_CHOICES = [
-        ('blue', 'Blue'),
-        ('red', 'Red'),
-        ('green', 'Green'),
-        ('purple', 'Purple'),
-        ('yellow', 'Yellow'),
-        ('orange', 'Orange'),
-        ('pink', 'Pink'),
-        ('teal', 'Teal'),
+    HOBBY_CATEGORY_CHOICES = [
+        ('creative-arts', 'Creative & Arts'),
+        ('sports-fitness', 'Sports & Fitness'),
+        ('games-entertainment', 'Games & Entertainment'),
+        ('technology-science', 'Technology & Science'),
+        ('food-culinary', 'Food & Culinary'),
+        ('lifestyle-social', 'Lifestyle & Social'),
     ]
     
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
-    color_theme = models.CharField(max_length=20, choices=COLOR_CHOICES)
+    color_theme = models.CharField(max_length=20, choices=HOBBY_CATEGORY_CHOICES)
     icon = models.CharField(max_length=50, blank=True, help_text="Font Awesome icon class")
     order = models.IntegerField(default=0, help_text="Order for display sorting")
     

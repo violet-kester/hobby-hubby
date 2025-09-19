@@ -35,6 +35,9 @@ hobby_hubby/
 ├── tests/                   # Project-wide tests
 ├── requirements/            # Environment-specific requirements
 ├── static/                  # Static files
+│   └── css/
+│       ├── hh-colors.css    # Hobby Hubby color system and category styling
+│       └── hh-colors.scss   # SCSS source for color system
 ├── templates/               # Templates
 ├── media/                   # User uploads
 └── manage.py
@@ -206,6 +209,95 @@ The following security measures have been implemented based on the Risk Register
   - Form validation and security (20 tests)
 - All tests passing ensures system integrity and security compliance
 
+## Design System & Visual Identity
+
+### Hobby Hubby Jewel Tones Color Palette
+
+The forum design uses a sophisticated jewel tones color palette that maps to the six main hobby categories:
+
+#### Category Color Mapping
+- **Creative & Arts**: Deep Emerald (#2F7D5C) - Rich forest green representing creativity and growth
+- **Sports & Fitness**: Sapphire Blue (#1E3A8A) - Deep royal blue representing strength and determination
+- **Games & Entertainment**: Amethyst (#7C3AED) - Rich purple representing imagination and fun
+- **Technology & Science**: Ruby Red (#B91C1C) - Deep crimson representing innovation and precision
+- **Food & Culinary**: Topaz Gold (#D97706) - Warm amber representing warmth and nourishment
+- **Lifestyle & Social**: Onyx (#374151) - Sophisticated dark gray representing community and balance
+
+#### Color System Implementation
+- **CSS Variables**: All colors defined as CSS custom properties in `static/css/hh-colors.css`
+- **Color Variants**: Each category color includes light, dark, and ultra-light variants for different use cases
+- **Category Classes**: Dynamic CSS classes (e.g., `category-creative-arts`) apply contextual styling
+- **Responsive Design**: Colors adapt appropriately across different screen sizes
+
+### Fixed Category Structure
+
+The forum now uses a fixed set of six hobby categories, each with thematic subcategories:
+
+#### 1. Creative & Arts
+- Digital Art & Design, Traditional Art, Photography, Crafting & DIY, Music & Audio
+- **Icon**: `fas fa-palette`
+
+#### 2. Sports & Fitness  
+- Running & Cardio, Weight Training, Yoga & Mindfulness, Outdoor Activities, Team Sports
+- **Icon**: `fas fa-running`
+
+#### 3. Games & Entertainment
+- Video Games, Board Games, Movies & TV, Books & Reading, Streaming & Content
+- **Icon**: `fas fa-gamepad`
+
+#### 4. Technology & Science
+- Programming, Electronics & Gadgets, Science & Research, AI & Machine Learning, Cybersecurity
+- **Icon**: `fas fa-microchip`
+
+#### 5. Food & Culinary
+- Cooking & Recipes, Baking & Desserts, International Cuisine, Healthy Eating, Food Photography
+- **Icon**: `fas fa-utensils`
+
+#### 6. Lifestyle & Social
+- Travel & Adventure, Personal Development, Community Events, Fashion & Style, Home & Garden
+- **Icon**: `fas fa-users`
+
+### Banner Styling & Visual Design
+
+#### Category Banner Features
+- **Gradient Backgrounds**: Each category uses a custom gradient from the primary color to its lighter variant
+- **Overlay Effects**: Subtle white overlay gradients on the right side for visual depth
+- **Typography**: Large, bold category titles with descriptive text
+- **Icons**: Font Awesome 6 icons that reflect each category's theme
+- **Shadow Effects**: Text shadows for better readability over gradient backgrounds
+
+#### Subcategory Design
+- **Hover Effects**: Transform animations with color transitions
+- **Border Accents**: Left border styling that changes color on hover
+- **Badge Styling**: Member and thread count badges using category colors
+- **Ultra-light Backgrounds**: Subtle background color changes on hover using ultra-light color variants
+
+#### Responsive Considerations
+- **Mobile Optimization**: Banner heights and typography scale appropriately
+- **Touch Targets**: Adequate spacing for mobile interaction
+- **Icon Sizing**: Icons scale down on smaller screens
+- **Text Hierarchy**: Clear information hierarchy maintained across devices
+
+### Management Commands
+
+#### Category Setup
+- **`setup_hobby_categories`**: Creates the fixed six hobby categories with proper styling
+- **`create_sample_subcategories`**: Populates categories with realistic subcategory examples
+- **Reset Options**: Both commands support `--reset` flag for development/testing
+
+### Template Integration
+
+#### Updated Templates
+- **`category_list.html`**: Completely redesigned with banner styling and improved visual hierarchy
+- **`base.html`**: Includes the new color system CSS file
+- **Category Classes**: Dynamic CSS class application based on category color theme
+
+#### Design Principles Applied
+- **Visual Consistency**: All category banners follow the same design pattern with unique colors
+- **Information Architecture**: Clear hierarchy from categories to subcategories
+- **User Experience**: Hover states and transitions provide responsive feedback
+- **Accessibility**: High contrast text shadows and appropriate color combinations
+
 ## Implementation Progress
 
 ### Completed Features (Phase 1-6.2)
@@ -224,6 +316,7 @@ The following security measures have been implemented based on the Risk Register
 13. **Private Messaging Models** - Complete messaging system foundation with conversations and messages
 14. **Private Messaging Interface** - Complete messaging UI with inbox, conversations, and message composition
 15. **Search System** - Complete search functionality with PostgreSQL full-text search and SQLite fallback
+16. **Forum Redesign & Category System** - Fixed hobby categories with jewel-tone color palette and banner styling
 
 ### Latest Implementation (Phase 7.1 - Basic Search Implementation)
 - **Search Architecture**: Dual implementation supporting both PostgreSQL full-text search and SQLite fallback for testing
