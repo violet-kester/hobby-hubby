@@ -174,18 +174,23 @@
 <!-- AJAX Voting JavaScript -->
 {% if user.is_authenticated %}
 <script>
+console.log('Loading thread detail script');
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle vote and bookmark button clicks
     document.addEventListener('click', function(event) {
-        // Handle bookmark buttons
-        if (event.target.closest('.bookmark-btn')) {
+        // Handle vote buttons
+        if (event.target.closest('.vote-btn')) {
             event.preventDefault();
-
-            const button = event.target.closest('.bookmark-btn');
-            const threadId = button.getAttribute('data-thread-id');
-
+            
+            const button = event.target.closest('.vote-btn');
+            const postId = button.getAttribute('data-post-id');
+            const isVoted = button.getAttribute('data-voted') === 'true';
+            
+            // Disable button during request
             button.disabled = true;
-
-            fetch(`/forums/bookmark/${threadId}/`, {
+            
+            // Make AJAX request
+            fetch('{% url "forums:vote_post" post_id=0 %}'.replace('0', postId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -193,43 +198,112 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-
-                if (data.success) {
-                    // Update button state based on bookmark status
-                    if (data.bookmarked) {
-                        button.classList.remove('btn-outline-warning');
-                        button.classList.add('btn-warning');
-                        button.setAttribute('data-bookmarked', 'true');
-                        button.setAttribute('title', 'Remove bookmark');
-                        button.innerHTML = '<i class="fas fa-bookmark"></i> bookmarked';
-                    } else {
-                        button.classList.remove('btn-warning');
-                        button.classList.add('btn-outline-warning');
-                        button.setAttribute('data-bookmarked', 'false');
-                        button.setAttribute('title', 'Bookmark this thread');
-                        button.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
-                    }
+                if (data.error) {
+                    alert(data.error);
                 } else {
-                    alert('Error: ' + data.error);
+                    // Update vote button state
+                    if (data.voted) {
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-primary');
+                        button.setAttribute('data-voted', 'true');
+                        button.setAttribute('title', 'Remove vote');
+                    } else {
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-outline-primary');
+                        button.setAttribute('data-voted', 'false');
+                        button.setAttribute('title', 'Vote for this post');
+                    }
+                    
+                    // Update vote count display
+                    const voteCountElement = document.querySelector(`.vote-count[data-post-id="${postId}"] strong`);
+                    const voteTextElement = document.querySelector(`.vote-count[data-post-id="${postId}"] small`);
+                    if (voteCountElement) {
+                        voteCountElement.textContent = data.vote_count;
+                        voteTextElement.textContent = data.vote_count === 1 ? 'vote' : 'votes';
+                    }
                 }
-
-                button.disabled = false;
             })
             .catch(error => {
-                console.error('Bookmark error:', error);
-                alert('Error updating bookmark. Please try again.');
+                console.error('Vote error:', error);
+                alert('Error processing vote. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable button
                 button.disabled = false;
             });
         }
+        }
+
+        // Handle bookmark buttons
+        if (event.target.closest('.bookmark-btn')) {
+        event.preventDefault();
+
+        const button = event.target.closest('.bookmark-btn');
+        const threadId = button.getAttribute('data-thread-id');
+        const isBookmarked = button.getAttribute('data-bookmarked') === 'true';
+
+        console.log('Bookmark button clicked:', { threadId, isBookmarked });
+
+        // Disable button during request
+        button.disabled = true;
+
+        const bookmarkUrl = '{% url "forums:bookmark_thread" thread_id=0 %}'.replace('0', threadId);
+        console.log('Making bookmark request to:', bookmarkUrl);
+
+        // Make AJAX request
+        fetch(bookmarkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Bookmark response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Bookmark response data:', data);
+            if (data.error) {
+                console.error('Bookmark error:', data.error);
+                alert(data.error);
+            } else {
+                // Update bookmark button state
+                const icon = button.querySelector('i');
+                if (data.bookmarked) {
+                    button.classList.remove('btn-outline-warning');
+                    button.classList.add('btn-warning');
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    button.setAttribute('data-bookmarked', 'true');
+                    button.setAttribute('title', 'Remove bookmark');
+                    button.innerHTML = '<i class="fas fa-bookmark"></i> bookmarked';
+                } else {
+                    button.classList.remove('btn-warning');
+                    button.classList.add('btn-outline-warning');
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    button.setAttribute('data-bookmarked', 'false');
+                    button.setAttribute('title', 'Bookmark this thread');
+                    button.innerHTML = '<i class="far fa-bookmark"></i> Bookmark';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Bookmark error:', error);
+            alert('Error processing bookmark. Please try again.');
+        })
+        .finally(() => {
+            // Re-enable button
+            button.disabled = false;
+        });
+        }
     });
-});
+// Clean script end
+console.log('Script loaded successfully');
 </script>
 {% endif %}
 {% endblock %}

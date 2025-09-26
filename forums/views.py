@@ -1,5 +1,6 @@
 import time
 import hashlib
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView
 from django.core.paginator import Paginator
@@ -19,6 +20,8 @@ from django.db.models import Count, Avg, Sum, Q, F
 from django.utils import timezone
 from datetime import timedelta
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
 from django.views.decorators.cache import cache_page
 from django.db import connection
 from .models import Category, Subcategory, Thread, Post, Vote, Bookmark, SearchHistory, SavedSearch, SearchAnalytics
@@ -206,36 +209,40 @@ def post_create(request, category_slug, subcategory_slug, thread_slug):
         subcategory__slug=subcategory_slug,
         slug=thread_slug
     )
-    
+
     # Check if thread is locked
     if thread.is_locked:
         return HttpResponseForbidden('This thread is locked and no longer accepts replies.')
-    
+
     if request.method == 'POST':
         form = PostCreateForm(request.POST)
+
         if form.is_valid():
+            content = form.cleaned_data['content']
+
             # Create the post
             post = Post.objects.create(
-                content=form.cleaned_data['content'],
+                content=content,
                 thread=thread,
                 author=request.user
             )
-            
+
             # Add success message
             messages.success(
                 request,
                 'Reply posted successfully!'
             )
-            
+
             # Redirect to the thread with anchor to new post
-            thread_url = reverse('forums:thread_detail', 
+            thread_url = reverse('forums:thread_detail',
                                kwargs={'category_slug': thread.subcategory.category.slug,
                                       'subcategory_slug': thread.subcategory.slug,
                                       'thread_slug': thread.slug})
-            return redirect(f"{thread_url}#post-{post.id}")
+            redirect_url = f"{thread_url}#post-{post.id}"
+            return redirect(redirect_url)
     else:
         form = PostCreateForm()
-    
+
     return render(request, 'forums/post_create.html', {
         'form': form,
         'thread': thread
@@ -247,24 +254,24 @@ def preview_content(request):
     """AJAX view for previewing content before posting."""
     if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return HttpResponseBadRequest('AJAX request required')
-    
+
     if request.method != 'POST':
         return HttpResponseBadRequest('POST request required')
-    
+
     form = PreviewForm(request.POST)
-    
+
     if not form.is_valid():
         return JsonResponse({'error': 'Content is required for preview'}, status=400)
-    
+
     content = form.cleaned_data['content']
-    
+
     if not content.strip():
         return JsonResponse({'error': 'Content cannot be empty'}, status=400)
-    
+
     # Convert content to HTML (basic linebreaks for now)
     # Later this can be enhanced with markdown support
     html_content = linebreaks(content)
-    
+
     return JsonResponse({
         'html': html_content
     })
@@ -315,32 +322,47 @@ def vote_post(request, post_id):
 @login_required
 def bookmark_thread(request, thread_id):
     """AJAX view for bookmarking threads."""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST method required'}, status=405)
-    
-    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return HttpResponseBadRequest('AJAX request required')
-    
-    # Get the thread
-    thread = get_object_or_404(Thread, id=thread_id)
-    
-    # Check if user has already bookmarked this thread
-    bookmark, created = Bookmark.objects.get_or_create(
-        user=request.user,
-        thread=thread
-    )
-    
-    if created:
-        # User just bookmarked
-        bookmarked = True
-    else:
-        # User already bookmarked, so remove the bookmark
-        bookmark.delete()
-        bookmarked = False
-    
-    return JsonResponse({
-        'bookmarked': bookmarked
-    })
+    try:
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST method required', 'success': False}, status=405)
+
+        if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'AJAX request required', 'success': False}, status=400)
+
+        # Get the thread
+        thread = get_object_or_404(Thread, id=thread_id)
+
+        # Check if user has already bookmarked this thread
+        bookmark, created = Bookmark.objects.get_or_create(
+            user=request.user,
+            thread=thread
+        )
+
+        if created:
+            # User just bookmarked
+            bookmarked = True
+        else:
+            # User already bookmarked, so remove the bookmark
+            bookmark.delete()
+            bookmarked = False
+
+        # Get updated bookmark count
+        bookmark_count = Bookmark.objects.filter(user=request.user).count()
+
+        response_data = {
+            'bookmarked': bookmarked,
+            'bookmark_count': bookmark_count,
+            'thread_id': thread.id,
+            'success': True
+        }
+
+        return JsonResponse(response_data)
+
+    except Exception as e:
+        return JsonResponse({
+            'error': 'An error occurred while processing your request.',
+            'success': False
+        }, status=500)
 
 
 def search_view(request):

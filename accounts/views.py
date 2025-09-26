@@ -307,7 +307,7 @@ class UserBookmarksView(LoginRequiredMixin, ListView):
     template_name = 'accounts/bookmarks.html'
     context_object_name = 'bookmarks'
     paginate_by = 20
-    
+
     def get_queryset(self):
         """Get bookmarks for the current user."""
         from forums.models import Bookmark

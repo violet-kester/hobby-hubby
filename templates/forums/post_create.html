@@ -86,7 +86,15 @@
                             </small>
                         </div>
 
-                        {{ form.content }}
+                        <!-- Hidden textarea for form submission -->
+                        <textarea name="content" id="{{ form.content.id_for_label }}" class="d-none" required>{{ form.content.value|default:"" }}</textarea>
+
+                        <!-- Visual rich text editor -->
+                        <div id="rich-text-editor"
+                             class="form-control rich-text-display"
+                             contenteditable="true"
+                             style="min-height: 150px; overflow-y: auto;"
+                             data-placeholder="Write your reply..."></div>
                         {% if form.content.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.content.errors %}
@@ -154,100 +162,134 @@
     </div>
 </div>
 
+<!-- Rich Text Editor Styling -->
+<style>
+.rich-text-display {
+    font-family: inherit;
+    line-height: 1.5;
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.rich-text-display:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.rich-text-display[data-placeholder]:empty:before {
+    content: attr(data-placeholder);
+    color: #6c757d;
+    font-style: italic;
+}
+
+.rich-text-display b,
+.rich-text-display strong {
+    font-weight: bold;
+}
+
+.rich-text-display i,
+.rich-text-display em {
+    font-style: italic;
+}
+
+.rich-text-display u {
+    text-decoration: underline;
+}
+</style>
+
 <!-- Rich Text Formatting and AJAX Preview JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Store URLs to avoid template rendering issues in JavaScript
+    const previewUrl = '{% url "forums:preview_content" %}';
+
     const previewBtn = document.getElementById('preview-btn');
     const previewArea = document.getElementById('preview-area');
     const previewContent = document.getElementById('preview-content');
-    const contentField = document.getElementById('{{ form.content.id_for_label }}');
+    const hiddenTextarea = document.getElementById('{{ form.content.id_for_label }}') ||
+                            document.querySelector('textarea[name="content"]');
+    const richTextEditor = document.getElementById('rich-text-editor');
+    const contentField = richTextEditor; // Use the rich text editor as the main content field
 
     // Rich text formatting buttons
     const boldBtn = document.getElementById('bold-btn');
     const italicBtn = document.getElementById('italic-btn');
     const underlineBtn = document.getElementById('underline-btn');
 
+    // Sync content between rich text editor and hidden textarea
+    function syncContent() {
+        if (hiddenTextarea && richTextEditor) {
+            hiddenTextarea.value = richTextEditor.innerHTML;
+        }
+    }
+
+    // Sync content when rich text editor changes
+    richTextEditor.addEventListener('input', syncContent);
+    richTextEditor.addEventListener('paste', function() {
+        setTimeout(syncContent, 10); // Small delay to let paste complete
+    });
+
     let isPreviewMode = false;
 
     // Rich text formatting functions
-    function insertFormatting(openTag, closeTag) {
-        const textarea = contentField;
+    function applyFormatting(command, value = null) {
+        // Focus the rich text editor first
+        richTextEditor.focus();
 
-        // Store current selection before any operations
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const selectedText = textarea.value.substring(start, end);
+        // Apply the formatting using execCommand
+        const success = document.execCommand(command, false, value);
 
-        if (selectedText.length > 0) {
-            // Wrap selected text
-            const beforeText = textarea.value.substring(0, start);
-            const afterText = textarea.value.substring(end);
-            const newText = beforeText + openTag + selectedText + closeTag + afterText;
+        // Sync content to hidden textarea
+        syncContent();
 
-            textarea.value = newText;
-
-            // Maintain focus and restore selection around the formatted text
-            textarea.focus();
-            const newStart = start + openTag.length;
-            const newEnd = newStart + selectedText.length;
-            textarea.setSelectionRange(newStart, newEnd);
-        } else {
-            // Insert tags at cursor position
-            const beforeText = textarea.value.substring(0, start);
-            const afterText = textarea.value.substring(start);
-            const newText = beforeText + openTag + closeTag + afterText;
-
-            textarea.value = newText;
-
-            // Position cursor between tags
-            textarea.focus();
-            const newCursorPos = start + openTag.length;
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
-        }
+        return success;
     }
 
     // Button click handlers
     boldBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        insertFormatting('<b>', '</b>');
+        applyFormatting('bold');
     });
 
     italicBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        insertFormatting('<i>', '</i>');
+        applyFormatting('italic');
     });
 
     underlineBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        insertFormatting('<u>', '</u>');
+        applyFormatting('underline');
     });
 
+
     // Keyboard shortcuts
-    contentField.addEventListener('keydown', function(e) {
+    richTextEditor.addEventListener('keydown', function(e) {
         if (e.ctrlKey || e.metaKey) {
             switch(e.key.toLowerCase()) {
                 case 'b':
                     e.preventDefault();
-                    insertFormatting('<b>', '</b>');
+                    applyFormatting('bold');
                     break;
                 case 'i':
                     e.preventDefault();
-                    insertFormatting('<i>', '</i>');
+                    applyFormatting('italic');
                     break;
                 case 'u':
                     e.preventDefault();
-                    insertFormatting('<u>', '</u>');
+                    applyFormatting('underline');
                     break;
             }
         }
     });
 
-    let isPreviewMode = false;
-    
     previewBtn.addEventListener('click', function() {
         if (!isPreviewMode) {
             // Show preview
-            const content = contentField.value.trim();
+            const content = richTextEditor.innerHTML.trim();
             
             if (!content) {
                 alert('Please enter some content to preview.');
@@ -255,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Make AJAX request for preview
-            fetch('{% url "forums:preview_content" %}', {
+            fetch(previewUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -276,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Preview error:', error);
                 alert('Error loading preview. Please try again.');
             });
         } else {
@@ -285,6 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
             previewBtn.innerHTML = '<i class="fas fa-eye me-1"></i> Preview';
             isPreviewMode = false;
         }
+    });
+
+    // Sync content before form submission
+    const form = document.getElementById('reply-form');
+    form.addEventListener('submit', function(e) {
+        syncContent();
     });
 });
 </script>
