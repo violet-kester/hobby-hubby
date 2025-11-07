@@ -13,8 +13,8 @@ class UserAdmin(BaseUserAdmin):
     """Admin interface for CustomUser model."""
     
     # Fields to display in the user list
-    list_display = ('email', 'display_name', 'is_email_verified', 'is_active', 'is_staff', 'date_joined')
-    list_filter = ('is_active', 'is_staff', 'is_superuser', 'is_email_verified', 'date_joined')
+    list_display = ('email', 'display_name', 'get_role_display', 'is_email_verified', 'is_active', 'date_joined')
+    list_filter = ('is_active', 'is_staff', 'is_superuser', 'is_forum_admin', 'is_forum_moderator', 'is_email_verified', 'date_joined')
     search_fields = ('email', 'display_name', 'location')
     ordering = ('-date_joined',)
     
@@ -22,8 +22,14 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {'fields': ('display_name', 'location', 'bio', 'profile_picture')}),
-        (_('Permissions'), {
+        (_('Forum Roles'), {
+            'fields': ('is_forum_admin', 'is_forum_moderator'),
+            'description': 'Forum-specific roles for content management and administration.',
+        }),
+        (_('System Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+            'classes': ('collapse',),
+            'description': 'Django system-level permissions. Use Forum Roles above for forum-specific access.',
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('Email verification'), {'fields': ('is_email_verified',)}),
@@ -41,7 +47,7 @@ class UserAdmin(BaseUserAdmin):
     readonly_fields = ('date_joined', 'last_login')
     
     # Custom actions
-    actions = ['verify_email', 'unverify_email']
+    actions = ['verify_email', 'unverify_email', 'make_forum_admin', 'make_forum_moderator', 'remove_forum_roles']
     
     def verify_email(self, request, queryset):
         """Action to verify user emails."""
@@ -54,6 +60,33 @@ class UserAdmin(BaseUserAdmin):
         updated = queryset.update(is_email_verified=False)
         self.message_user(request, f'{updated} users had their email unverified.')
     unverify_email.short_description = "Unverify email for selected users"
+
+    def make_forum_admin(self, request, queryset):
+        """Action to make selected users forum admins."""
+        updated = queryset.update(is_forum_admin=True, is_forum_moderator=True, is_staff=True)
+        self.message_user(request, f'{updated} users were promoted to Forum Admin.')
+    make_forum_admin.short_description = "Promote to Forum Admin (includes moderator privileges)"
+
+    def make_forum_moderator(self, request, queryset):
+        """Action to make selected users forum moderators."""
+        updated = queryset.update(is_forum_moderator=True)
+        # Also give them basic staff access for analytics
+        queryset.update(is_staff=True)
+        self.message_user(request, f'{updated} users were promoted to Forum Moderator.')
+    make_forum_moderator.short_description = "Promote to Forum Moderator"
+
+    def remove_forum_roles(self, request, queryset):
+        """Action to remove forum roles from selected users."""
+        # Keep is_staff if they're superuser, otherwise remove it
+        for user in queryset:
+            user.is_forum_admin = False
+            user.is_forum_moderator = False
+            if not user.is_superuser:
+                user.is_staff = False
+            user.save()
+        count = queryset.count()
+        self.message_user(request, f'{count} users had their forum roles removed.')
+    remove_forum_roles.short_description = "Remove all forum roles from selected users"
 
 
 @admin.register(UserHobby)

@@ -1,91 +1,92 @@
 /**
- * Hobby Hubby Jewel Tones Color Palette
- * Design system colors for the 6 main hobby categories
+ * Hobby Hubby Logo-Inspired Color Palette
+ * Design system colors extracted from the HH logo petals
+ * Each color represents one of the 6 main hobby categories
  */
 
 :root {
-  /* Primary Category Colors - Jewel Tones */
-  --hh-emerald: #2F7D5C;      /* Creative & Arts - rich forest green */
-  --hh-sapphire: #1E3A8A;     /* Sports & Fitness - deep royal blue */
-  --hh-amethyst: #7C3AED;     /* Games & Entertainment - rich purple */
-  --hh-ruby: #B91C1C;         /* Technology & Science - deep crimson */
-  --hh-topaz: #D97706;        /* Food & Culinary - warm amber */
-  --hh-onyx: #374151;         /* Lifestyle & Social - sophisticated dark gray */
-  
+  /* Primary Category Colors - Logo Petal Colors */
+  --hh-coral: #EF7674;        /* Creative & Arts - coral pink petal */
+  --hh-cyan: #4DD0E1;         /* Sports & Fitness - bright cyan petal */
+  --hh-orange: #FF7043;       /* Games & Entertainment - vibrant orange petal */
+  --hh-lime: #9CCC65;         /* Technology & Science - fresh lime green petal */
+  --hh-amber: #FFD54F;        /* Food & Culinary - warm amber yellow petal */
+  --hh-slate: #334155;        /* Lifestyle & Social - exact logo background color */
+
   /* Lighter tints for backgrounds and borders */
-  --hh-emerald-light: #10B981;
-  --hh-sapphire-light: #2563EB;
-  --hh-amethyst-light: #8B5CF6;
-  --hh-ruby-light: #DC2626;
-  --hh-topaz-light: #F59E0B;
-  --hh-onyx-light: #6B7280;
+  --hh-coral-light: #F48FB1;
+  --hh-cyan-light: #80DEEA;
+  --hh-orange-light: #FF8A65;
+  --hh-lime-light: #AED581;
+  --hh-amber-light: #FFE082;
+  --hh-slate-light: #64748B;
 
   /* Medium tones for better gradient transitions */
-  --hh-emerald-medium: #059669;
-  --hh-sapphire-medium: #2563EB;
-  --hh-amethyst-medium: #7C3AED;
-  --hh-ruby-medium: #DC2626;
-  --hh-topaz-medium: #F59E0B;
-  --hh-onyx-medium: #4B5563;
-  
+  --hh-coral-medium: #EC407A;
+  --hh-cyan-medium: #26C6DA;
+  --hh-orange-medium: #FF7043;
+  --hh-lime-medium: #9CCC65;
+  --hh-amber-medium: #FFCA28;
+  --hh-slate-medium: #475569;
+
   /* Darker shades for text and accents */
-  --hh-emerald-dark: #065F46;
-  --hh-sapphire-dark: #1E3A8A;
-  --hh-amethyst-dark: #5B21B6;
-  --hh-ruby-dark: #7F1D1D;
-  --hh-topaz-dark: #92400E;
-  --hh-onyx-dark: #1F2937;
-  
+  --hh-coral-dark: #C2185B;
+  --hh-cyan-dark: #00ACC1;
+  --hh-orange-dark: #E64A19;
+  --hh-lime-dark: #689F38;
+  --hh-amber-dark: #FFA000;
+  --hh-slate-dark: #1E293B;
+
   /* Ultra light tints for subtle backgrounds */
-  --hh-emerald-ultra-light: #ECFDF5;
-  --hh-sapphire-ultra-light: #EFF6FF;
-  --hh-amethyst-ultra-light: #F3E8FF;
-  --hh-ruby-ultra-light: #FEF2F2;
-  --hh-topaz-ultra-light: #FFFBEB;
-  --hh-onyx-ultra-light: #F9FAFB;
+  --hh-coral-ultra-light: #FCE4EC;
+  --hh-cyan-ultra-light: #E0F7FA;
+  --hh-orange-ultra-light: #FBE9E7;
+  --hh-lime-ultra-light: #F1F8E9;
+  --hh-amber-ultra-light: #FFF9C4;
+  --hh-slate-ultra-light: #F1F5F9;
 }
 
 /* Category-specific styling classes */
 .category-creative-arts {
-  --category-color: var(--hh-emerald);
-  --category-color-light: var(--hh-emerald-light);
-  --category-color-dark: var(--hh-emerald-dark);
-  --category-color-ultra-light: var(--hh-emerald-ultra-light);
+  --category-color: var(--hh-coral);
+  --category-color-light: var(--hh-coral-light);
+  --category-color-dark: var(--hh-coral-dark);
+  --category-color-ultra-light: var(--hh-coral-ultra-light);
 }
 
 .category-sports-fitness {
-  --category-color: var(--hh-sapphire);
-  --category-color-light: var(--hh-sapphire-light);
-  --category-color-dark: var(--hh-sapphire-dark);
-  --category-color-ultra-light: var(--hh-sapphire-ultra-light);
+  --category-color: var(--hh-cyan);
+  --category-color-light: var(--hh-cyan-light);
+  --category-color-dark: var(--hh-cyan-dark);
+  --category-color-ultra-light: var(--hh-cyan-ultra-light);
 }
 
 .category-games-entertainment {
-  --category-color: var(--hh-amethyst);
-  --category-color-light: var(--hh-amethyst-light);
-  --category-color-dark: var(--hh-amethyst-dark);
-  --category-color-ultra-light: var(--hh-amethyst-ultra-light);
+  --category-color: var(--hh-orange);
+  --category-color-light: var(--hh-orange-light);
+  --category-color-dark: var(--hh-orange-dark);
+  --category-color-ultra-light: var(--hh-orange-ultra-light);
 }
 
 .category-technology-science {
-  --category-color: var(--hh-ruby);
-  --category-color-light: var(--hh-ruby-light);
-  --category-color-dark: var(--hh-ruby-dark);
-  --category-color-ultra-light: var(--hh-ruby-ultra-light);
+  --category-color: var(--hh-lime);
+  --category-color-light: var(--hh-lime-light);
+  --category-color-dark: var(--hh-lime-dark);
+  --category-color-ultra-light: var(--hh-lime-ultra-light);
 }
 
 .category-food-culinary {
-  --category-color: var(--hh-topaz);
-  --category-color-light: var(--hh-topaz-light);
-  --category-color-dark: var(--hh-topaz-dark);
-  --category-color-ultra-light: var(--hh-topaz-ultra-light);
+  --category-color: var(--hh-amber);
+  --category-color-light: var(--hh-amber-light);
+  --category-color-dark: var(--hh-amber-dark);
+  --category-color-ultra-light: var(--hh-amber-ultra-light);
 }
 
 .category-lifestyle-social {
-  --category-color: var(--hh-onyx);
-  --category-color-light: var(--hh-onyx-light);
-  --category-color-dark: var(--hh-onyx-dark);
-  --category-color-ultra-light: var(--hh-onyx-ultra-light);
+  --category-color: var(--hh-slate);
+  --category-color-light: var(--hh-slate-light);
+  --category-color-dark: var(--hh-slate-dark);
+  --category-color-ultra-light: var(--hh-slate-ultra-light);
 }
 
 /* Category banner styling with lighter, smoother gradients */
@@ -208,13 +209,304 @@
   .category-banner {
     min-height: 100px;
   }
-  
+
   .category-title {
     font-size: 1.5rem;
   }
-  
+
   .category-icon {
     font-size: 2rem;
     margin-right: 0.75rem;
   }
+}
+
+/* ============================================
+   DARK THEME
+   ============================================ */
+
+/* Dark theme color variables */
+[data-theme="dark"] {
+  /* Main dark theme colors using logo background */
+  --dark-bg-primary: #334155;     /* Logo background color */
+  --dark-bg-secondary: #1e293b;   /* Darker variant */
+  --dark-bg-tertiary: #0f172a;    /* Even darker for cards */
+  --dark-text-primary: #f1f5f9;   /* Light text */
+  --dark-text-secondary: #cbd5e1; /* Muted text */
+  --dark-text-tertiary: #94a3b8;  /* More muted text */
+  --dark-border: #475569;         /* Borders */
+  --dark-hover: #475569;          /* Hover states */
+}
+
+/* Dark theme body and main elements */
+[data-theme="dark"] body {
+  background-color: var(--dark-bg-secondary);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .container {
+  color: var(--dark-text-primary);
+}
+
+/* Navbar dark theme */
+[data-theme="dark"] .navbar-dark {
+  background-color: var(--dark-bg-primary) !important;
+}
+
+/* Cards and content areas */
+[data-theme="dark"] .card {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .card-header {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .card-body {
+  background-color: var(--dark-bg-primary);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .card-footer {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-secondary);
+}
+
+/* Lists and list groups */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: var(--dark-hover);
+}
+
+/* Forms and inputs */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] textarea.form-control {
+  background-color: var(--dark-bg-tertiary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+  box-shadow: 0 0 0 0.25rem rgba(51, 65, 85, 0.5);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--dark-text-tertiary);
+}
+
+[data-theme="dark"] .form-label {
+  color: var(--dark-text-primary);
+}
+
+/* Buttons */
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--dark-text-primary);
+  border-color: var(--dark-border);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--dark-hover);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: var(--dark-hover);
+}
+
+/* Tables */
+[data-theme="dark"] .table {
+  color: var(--dark-text-primary);
+  border-color: var(--dark-border);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: var(--dark-bg-secondary);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+  background-color: var(--dark-hover);
+}
+
+/* Alerts */
+[data-theme="dark"] .alert {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+/* Modals */
+[data-theme="dark"] .modal-content {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .modal-header {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .modal-footer {
+  background-color: var(--dark-bg-secondary);
+  border-color: var(--dark-border);
+}
+
+/* Dropdowns */
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  background-color: var(--dark-hover);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .dropdown-divider {
+  border-color: var(--dark-border);
+}
+
+/* Badges */
+[data-theme="dark"] .badge {
+  background-color: var(--dark-bg-secondary);
+  color: var(--dark-text-primary);
+}
+
+/* Breadcrumbs */
+[data-theme="dark"] .breadcrumb {
+  background-color: var(--dark-bg-primary);
+}
+
+[data-theme="dark"] .breadcrumb-item,
+[data-theme="dark"] .breadcrumb-item a {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+  color: var(--dark-text-primary);
+}
+
+/* Pagination */
+[data-theme="dark"] .pagination .page-link {
+  background-color: var(--dark-bg-primary);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+  background-color: var(--dark-hover);
+  border-color: var(--dark-border);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--dark-hover);
+  border-color: var(--dark-border);
+}
+
+/* Search suggestions */
+[data-theme="dark"] .search-suggestions {
+  background-color: var(--dark-bg-primary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+[data-theme="dark"] .search-suggestion-item {
+  border-color: var(--dark-border) !important;
+}
+
+[data-theme="dark"] .search-suggestion-item:hover,
+[data-theme="dark"] .search-suggestion-item.bg-light {
+  background-color: var(--dark-hover) !important;
+}
+
+/* Links */
+[data-theme="dark"] a {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] a:hover {
+  color: #93c5fd;
+}
+
+/* Text colors */
+[data-theme="dark"] .text-muted {
+  color: var(--dark-text-tertiary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--dark-text-primary) !important;
+}
+
+/* Borders */
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end {
+  border-color: var(--dark-border) !important;
+}
+
+/* Subcategory items in dark mode */
+[data-theme="dark"] .subcategory-item {
+  background-color: var(--dark-bg-primary);
+  color: var(--dark-text-primary);
+}
+
+[data-theme="dark"] .subcategory-item:hover {
+  background-color: var(--dark-hover);
+}
+
+/* Category banners remain colorful in dark mode */
+[data-theme="dark"] .category-banner {
+  /* Keep the vibrant colors, they look great on dark backgrounds */
+}
+
+/* Theme toggle button styles */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+.theme-toggle i {
+  transition: transform 0.5s ease;
+}
+
+.theme-toggle:active i {
+  transform: rotate(360deg);
 }

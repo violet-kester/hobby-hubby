@@ -5,7 +5,10 @@
       "Bash(python3 manage.py runserver:*)",
       "Bash(source:*)",
       "Bash(python:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(python3 manage.py:*)"
     ],
     "deny": [],
     "ask": []

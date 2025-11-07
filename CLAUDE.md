@@ -211,23 +211,38 @@ The following security measures have been implemented based on the Risk Register
 
 ## Design System & Visual Identity
 
-### Hobby Hubby Jewel Tones Color Palette
+### Hobby Hubby Logo-Inspired Color Palette
 
-The forum design uses a sophisticated jewel tones color palette that maps to the six main hobby categories:
+The forum design uses vibrant colors extracted directly from the HH logo petals, creating a cohesive visual identity that maps to the six main hobby categories:
 
 #### Category Color Mapping
-- **Creative & Arts**: Deep Emerald (#2F7D5C) - Rich forest green representing creativity and growth
-- **Sports & Fitness**: Sapphire Blue (#1E3A8A) - Deep royal blue representing strength and determination
-- **Games & Entertainment**: Amethyst (#7C3AED) - Rich purple representing imagination and fun
-- **Technology & Science**: Ruby Red (#B91C1C) - Deep crimson representing innovation and precision
-- **Food & Culinary**: Topaz Gold (#D97706) - Warm amber representing warmth and nourishment
-- **Lifestyle & Social**: Onyx (#374151) - Sophisticated dark gray representing community and balance
+- **Creative & Arts**: Coral Pink (#EF7674) - Warm coral petal representing artistic expression and creativity
+- **Sports & Fitness**: Bright Cyan (#4DD0E1) - Energetic cyan petal representing movement and vitality
+- **Games & Entertainment**: Vibrant Orange (#FF7043) - Bold orange petal representing fun and excitement
+- **Technology & Science**: Fresh Lime (#9CCC65) - Bright lime petal representing innovation and growth
+- **Food & Culinary**: Warm Amber (#FFD54F) - Golden amber petal representing warmth and nourishment
+- **Lifestyle & Social**: Sophisticated Slate (#334155) - Exact logo background color representing community and balance
 
 #### Color System Implementation
 - **CSS Variables**: All colors defined as CSS custom properties in `static/css/hh-colors.css`
 - **Color Variants**: Each category color includes light, dark, and ultra-light variants for different use cases
 - **Category Classes**: Dynamic CSS classes (e.g., `category-creative-arts`) apply contextual styling
 - **Responsive Design**: Colors adapt appropriately across different screen sizes
+
+#### Dark Theme Implementation
+- **Logo-Inspired Design**: Dark theme uses the exact logo background color (#334155) as primary background
+- **Color Hierarchy**: Three-tier background system (primary, secondary, tertiary) for depth and hierarchy
+- **Theme Toggle**: Moon/sun icon button in navbar for instant theme switching
+- **Persistence**: User preference saved in localStorage and persists across sessions
+- **Accessibility**: Keyboard navigation support (Enter/Space to toggle), proper ARIA labels
+- **Smooth Transitions**: Icon rotation animation on toggle with 500ms transition
+- **Comprehensive Coverage**: Dark theme styles for all Bootstrap components:
+  - Cards, forms, inputs, buttons, tables, alerts, modals
+  - Dropdowns, badges, breadcrumbs, pagination
+  - Search suggestions, links, borders
+  - Category banners remain vibrant on dark backgrounds
+- **Performance**: Theme applied on page load to prevent flash of wrong theme
+- **Text Contrast**: Light text colors optimized for readability on dark backgrounds
 
 ### Fixed Category Structure
 

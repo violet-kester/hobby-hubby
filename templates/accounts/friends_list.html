@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ profile_user.display_name }}'s Friends - {{ block.super }}{% endblock %}
+{% block title %}{{ profile_user.display_name }}'s Hubbys - {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -11,13 +11,13 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2>
-                        <i class="fas fa-user-friends me-2"></i>{{ profile_user.display_name }}'s Friends
+                        <i class="fas fa-user-friends me-2"></i>{{ profile_user.display_name }}'s Hubbys
                     </h2>
                     <p class="text-muted mb-0">
-                        {% if friend_count %}
-                            {{ friend_count }} friend{{ friend_count|pluralize }}
+                        {% if hubby_count %}
+                            {{ hubby_count }} Hubby{{ hubby_count|pluralize }}
                         {% else %}
-                            No friends yet
+                            No Hubbys yet
                         {% endif %}
                     </p>
                 </div>
@@ -31,22 +31,22 @@
                             {{ profile_user.display_name }}'s Profile
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Friends</li>
+                    <li class="breadcrumb-item active" aria-current="page">Hubbys</li>
                 </ol>
             </nav>
             
-            {% if friends %}
-            <!-- Friends Grid -->
+            {% if Hubbys %}
+            <!-- Hubbys Grid -->
             <div class="row">
-                {% for friend_data in friends %}
+                {% for Hubby_data in Hubbys %}
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="card h-100 friend-card">
+                    <div class="card h-100 Hubby-card">
                         <div class="card-body text-center">
                             <!-- Profile Picture -->
                             <div class="mb-3">
-                                {% if friend_data.user.profile_picture %}
-                                <img src="{{ friend_data.user.profile_picture.url }}" 
-                                     alt="{{ friend_data.user.display_name }}"
+                                {% if Hubby_data.user.profile_picture %}
+                                <img src="{{ Hubby_data.user.profile_picture.url }}" 
+                                     alt="{{ Hubby_data.user.display_name }}"
                                      class="rounded-circle"
                                      style="width: 80px; height: 80px; object-fit: cover;">
                                 {% else %}
@@ -59,32 +59,32 @@
                             
                             <!-- User Info -->
                             <h6 class="card-title mb-2">
-                                <a href="{% url 'accounts:user_profile' user_id=friend_data.user.id %}" 
+                                <a href="{% url 'accounts:user_profile' user_id=Hubby_data.user.id %}" 
                                    class="text-decoration-none">
-                                    {{ friend_data.user.display_name }}
+                                    {{ Hubby_data.user.display_name }}
                                 </a>
                             </h6>
                             
-                            {% if friend_data.user.location %}
+                            {% if Hubby_data.user.location %}
                             <p class="text-muted small mb-2">
-                                <i class="fas fa-map-marker-alt me-1"></i>{{ friend_data.user.location }}
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ Hubby_data.user.location }}
                             </p>
                             {% endif %}
                             
-                            {% if friend_data.friendship_date %}
+                            {% if Hubby_data.Hubbyship_date %}
                             <small class="text-muted">
-                                Friends since {{ friend_data.friendship_date|date:"M Y" }}
+                                Hubbys since {{ Hubby_data.Hubbyship_date|date:"M Y" }}
                             </small>
                             {% endif %}
                         </div>
                         
                         <div class="card-footer bg-transparent">
                             <div class="d-grid gap-2">
-                                <a href="{% url 'accounts:user_profile' user_id=friend_data.user.id %}" 
+                                <a href="{% url 'accounts:user_profile' user_id=Hubby_data.user.id %}" 
                                    class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-user me-1"></i>View Profile
                                 </a>
-                                <a href="{% url 'accounts:photo_gallery' user_id=friend_data.user.id %}" 
+                                <a href="{% url 'accounts:photo_gallery' user_id=Hubby_data.user.id %}" 
                                    class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-images me-1"></i>Photos
                                 </a>
@@ -96,30 +96,30 @@
             </div>
             
             <!-- Pagination -->
-            {% if friends.has_other_pages %}
-            <nav aria-label="Friends pagination" class="mt-4">
+            {% if Hubbys.has_other_pages %}
+            <nav aria-label="Hubbys pagination" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    {% if friends.has_previous %}
+                    {% if Hubbys.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page=1">First</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friends.previous_page_number }}">Previous</a>
+                            <a class="page-link" href="?page={{ Hubbys.previous_page_number }}">Previous</a>
                         </li>
                     {% endif %}
                     
                     <li class="page-item active">
                         <span class="page-link">
-                            Page {{ friends.number }} of {{ friends.paginator.num_pages }}
+                            Page {{ Hubbys.number }} of {{ Hubbys.paginator.num_pages }}
                         </span>
                     </li>
                     
-                    {% if friends.has_next %}
+                    {% if Hubbys.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friends.next_page_number }}">Next</a>
+                            <a class="page-link" href="?page={{ Hubbys.next_page_number }}">Next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friends.paginator.num_pages }}">Last</a>
+                            <a class="page-link" href="?page={{ Hubbys.paginator.num_pages }}">Last</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -130,14 +130,14 @@
             <!-- Empty State -->
             <div class="text-center py-5">
                 <i class="fas fa-user-friends fa-5x text-muted mb-4"></i>
-                <h4 class="text-muted">No Friends Yet</h4>
-                {% if is_own_friends_list %}
+                <h4 class="text-muted">No Hubbys Yet</h4>
+                {% if is_own_hubbies_list %}
                     <p class="text-muted mb-4">Start connecting with other community members!</p>
                     <a href="{% url 'forums:category_list' %}" class="btn btn-primary">
                         <i class="fas fa-search me-2"></i>Explore the Community
                     </a>
                 {% else %}
-                    <p class="text-muted">{{ profile_user.display_name }} hasn't made any friends yet.</p>
+                    <p class="text-muted">{{ profile_user.display_name }} hasn't made any Hubbys yet.</p>
                 {% endif %}
             </div>
             {% endif %}
@@ -146,11 +146,11 @@
 </div>
 
 <style>
-.friend-card {
+.Hubby-card {
     transition: transform 0.2s ease-in-out;
 }
 
-.friend-card:hover {
+.Hubby-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }

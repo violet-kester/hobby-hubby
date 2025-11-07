@@ -1522,9 +1522,9 @@ def clear_search_history_view(request):
 @login_required
 def search_analytics_dashboard(request):
     """Admin dashboard for search analytics and insights."""
-    # Check if user is staff/admin
-    if not request.user.is_staff:
-        return HttpResponseForbidden("Access denied. Admin privileges required.")
+    # Check if user has admin or moderator access
+    if not request.user.has_moderator_access():
+        return HttpResponseForbidden("Access denied. Moderator or Admin privileges required.")
     
     # Get date range from request (default to last 30 days)
     try:
@@ -1651,8 +1651,8 @@ def search_analytics_dashboard(request):
 @login_required
 def search_analytics_api(request):
     """API endpoint for search analytics data (AJAX requests)."""
-    if not request.user.is_staff:
-        return JsonResponse({'error': 'Access denied'}, status=403)
+    if not request.user.has_moderator_access():
+        return JsonResponse({'error': 'Access denied. Moderator or Admin privileges required.'}, status=403)
     
     if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'error': 'AJAX required'}, status=400)

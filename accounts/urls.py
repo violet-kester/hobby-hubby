@@ -36,14 +36,15 @@ urlpatterns = [
     
     # Photo Gallery
     path('photos/upload/', views.upload_photo_view, name='upload_photo'),
+    path('photos/', views.all_photos_gallery_view, name='gallery_all'),
     path('photos/<int:user_id>/', views.photo_gallery_view, name='photo_gallery'),
     path('photos/delete/<int:photo_id>/', views.delete_photo_view, name='delete_photo'),
     
-    # Friend System
-    path('friends/send/<int:user_id>/', views.send_friend_request_view, name='send_friend_request'),
-    path('friends/respond/<int:friendship_id>/<str:action>/', views.respond_friend_request_view, name='respond_friend_request'),
-    path('friends/requests/', views.friend_requests_view, name='friend_requests'),
-    path('friends/<int:user_id>/', views.friends_list_view, name='friends_list'),
+    # Hubby System
+    path('hubbies/send/<int:user_id>/', views.send_friend_request_view, name='send_hubby_request'),
+    path('hubbies/respond/<int:friendship_id>/<str:action>/', views.respond_friend_request_view, name='respond_hubby_request'),
+    path('hubbies/requests/', views.friend_requests_view, name='hubby_requests'),
+    path('hubbies/<int:user_id>/', views.friends_list_view, name='hubbies_list'),
     
     # Messaging System
     path('inbox/', views.inbox_view, name='inbox'),

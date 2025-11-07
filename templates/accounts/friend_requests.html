@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Friend Requests - {{ block.super }}{% endblock %}
+{% block title %}Hubby Requests - {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -11,7 +11,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2>
-                        <i class="fas fa-user-friends me-2"></i>Friend Requests
+                        <i class="fas fa-user-Hubbys me-2"></i>Hubby Requests
                     </h2>
                     <p class="text-muted mb-0">
                         {% if request_count %}
@@ -23,10 +23,10 @@
                 </div>
             </div>
             
-            {% if friend_requests %}
-            <!-- Friend Requests List -->
+            {% if Hubby_requests %}
+            <!-- Hubby Requests List -->
             <div class="row">
-                {% for request in friend_requests %}
+                {% for request in Hubby_requests %}
                 <div class="col-12 mb-3">
                     <div class="card">
                         <div class="card-body">
@@ -63,13 +63,13 @@
                                 </div>
                                 
                                 <div class="col-md-4 text-end">
-                                    <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=request.id action='accept' %}" class="d-inline">
+                                    <form method="post" action="{% url 'accounts:respond_Hubby_request' Hubbyship_id=request.id action='accept' %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-success btn-sm me-2">
                                             <i class="fas fa-check me-1"></i>Accept
                                         </button>
                                     </form>
-                                    <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=request.id action='reject' %}" class="d-inline">
+                                    <form method="post" action="{% url 'accounts:respond_Hubby_request' Hubbyship_id=request.id action='reject' %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-times me-1"></i>Reject
@@ -84,30 +84,30 @@
             </div>
             
             <!-- Pagination -->
-            {% if friend_requests.has_other_pages %}
-            <nav aria-label="Friend requests pagination" class="mt-4">
+            {% if Hubby_requests.has_other_pages %}
+            <nav aria-label="Hubby requests pagination" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    {% if friend_requests.has_previous %}
+                    {% if Hubby_requests.has_previous %}
                         <li class="page-item">
                             <a class="page-link" href="?page=1">First</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friend_requests.previous_page_number }}">Previous</a>
+                            <a class="page-link" href="?page={{ Hubby_requests.previous_page_number }}">Previous</a>
                         </li>
                     {% endif %}
                     
                     <li class="page-item active">
                         <span class="page-link">
-                            Page {{ friend_requests.number }} of {{ friend_requests.paginator.num_pages }}
+                            Page {{ Hubby_requests.number }} of {{ Hubby_requests.paginator.num_pages }}
                         </span>
                     </li>
                     
-                    {% if friend_requests.has_next %}
+                    {% if Hubby_requests.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friend_requests.next_page_number }}">Next</a>
+                            <a class="page-link" href="?page={{ Hubby_requests.next_page_number }}">Next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ friend_requests.paginator.num_pages }}">Last</a>
+                            <a class="page-link" href="?page={{ Hubby_requests.paginator.num_pages }}">Last</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -117,9 +117,9 @@
             {% else %}
             <!-- Empty State -->
             <div class="text-center py-5">
-                <i class="fas fa-user-friends fa-5x text-muted mb-4"></i>
-                <h4 class="text-muted">No Friend Requests</h4>
-                <p class="text-muted mb-4">You don't have any pending friend requests at the moment.</p>
+                <i class="fas fa-user-Hubbys fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Hubby Requests</h4>
+                <p class="text-muted mb-4">You don't have any pending Hubby requests at the moment.</p>
                 <a href="{% url 'forums:category_list' %}" class="btn btn-primary">
                     <i class="fas fa-search me-2"></i>Explore the Community
                 </a>

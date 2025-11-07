@@ -217,7 +217,7 @@ def user_profile_view(request, user_id):
     # Get user's friend count
     from .models import Friendship
     from django.db.models import Q
-    friend_count = Friendship.objects.filter(
+    hubby_count = Friendship.objects.filter(
         Q(from_user=profile_user, status='accepted') |
         Q(to_user=profile_user, status='accepted')
     ).count()
@@ -242,7 +242,7 @@ def user_profile_view(request, user_id):
         'profile_user': profile_user,
         'post_count': post_count,
         'hobbies': hobbies,
-        'friend_count': friend_count,
+        'hubby_count': hubby_count,
         'is_own_profile': is_own_profile,
         'friendship_status': friendship_status,
         'friendship_request': friendship_request,
@@ -392,6 +392,27 @@ def photo_gallery_view(request, user_id):
     return render(request, 'accounts/photo_gallery.html', context)
 
 
+def all_photos_gallery_view(request):
+    """View for showing all photos from all users in the community."""
+    from .models import Photo
+
+    # Get all photos from all users, ordered by most recent
+    photos = Photo.objects.select_related('user').order_by('-created_at')
+
+    # Paginate photos (24 per page for better grid layout)
+    paginator = Paginator(photos, 24)
+    page_number = request.GET.get('page')
+    page_photos = paginator.get_page(page_number)
+
+    context = {
+        'photos': page_photos,
+        'photo_count': photos.count(),
+        'is_community_gallery': True,
+    }
+
+    return render(request, 'accounts/all_photos_gallery.html', context)
+
+
 @login_required
 def delete_photo_view(request, photo_id):
     """Delete photo view."""
@@ -413,7 +434,7 @@ def delete_photo_view(request, photo_id):
 
 @login_required
 def send_friend_request_view(request, user_id):
-    """Send a friend request to another user."""
+    """Send a hubby request to another user."""
     from .models import Friendship
     from django.utils import timezone
     
@@ -425,7 +446,7 @@ def send_friend_request_view(request, user_id):
     
     # Check if user is trying to friend themselves
     if request.user == target_user:
-        messages.error(request, "You cannot send a friend request to yourself.")
+        messages.error(request, "You cannot send a hubby request to yourself.")
         return redirect('accounts:user_profile', user_id=user_id)
     
     # Check if there's already a pending or accepted friendship
@@ -436,78 +457,78 @@ def send_friend_request_view(request, user_id):
     
     if existing_friendship:
         if existing_friendship.status == 'pending':
-            messages.warning(request, f"You already have a pending friend request to {target_user.display_name}.")
+            messages.warning(request, f"You already have a pending hubby request to {target_user.display_name}.")
             return redirect('accounts:user_profile', user_id=user_id)
         elif existing_friendship.status == 'accepted':
-            messages.info(request, f"You are already friends with {target_user.display_name}.")
+            messages.info(request, f"You are already hubbies with {target_user.display_name}.")
             return redirect('accounts:user_profile', user_id=user_id)
         elif existing_friendship.status == 'rejected':
             # Update the existing rejected friendship to pending
             existing_friendship.status = 'pending'
             existing_friendship.responded_at = None
             existing_friendship.save()
-            messages.success(request, f"Friend request sent to {target_user.display_name}!")
+            messages.success(request, f"Hubby request sent to {target_user.display_name}!")
             return redirect('accounts:user_profile', user_id=user_id)
     
-    # Create a new friend request
+    # Create a new hubby request
     try:
         Friendship.objects.create(
             from_user=request.user,
             to_user=target_user,
             status='pending'
         )
-        messages.success(request, f"Friend request sent to {target_user.display_name}!")
+        messages.success(request, f"Hubby request sent to {target_user.display_name}!")
     except Exception as e:
-        messages.error(request, "Unable to send friend request. Please try again.")
+        messages.error(request, "Unable to send hubby request. Please try again.")
     
     return redirect('accounts:user_profile', user_id=user_id)
 
 
 @login_required
 def respond_friend_request_view(request, friendship_id, action):
-    """Respond to a friend request (accept or reject)."""
+    """Respond to a hubby request (accept or reject)."""
     from .models import Friendship
     from django.utils import timezone
     
     if request.method != 'POST':
-        return redirect('accounts:friend_requests')
+        return redirect('accounts:hubby_requests')
     
     # Get the friendship request
     friendship = get_object_or_404(Friendship, id=friendship_id)
     
     # Check if current user is the recipient
     if request.user != friendship.to_user:
-        messages.error(request, "You can only respond to friend requests sent to you.")
-        return redirect('accounts:friend_requests')
+        messages.error(request, "You can only respond to hubby requests sent to you.")
+        return redirect('accounts:hubby_requests')
     
     # Check if request is still pending
     if friendship.status != 'pending':
-        messages.warning(request, "This friend request has already been responded to.")
-        return redirect('accounts:friend_requests')
+        messages.warning(request, "This hubby request has already been responded to.")
+        return redirect('accounts:hubby_requests')
     
     # Process the response
     if action == 'accept':
         friendship.status = 'accepted'
         friendship.responded_at = timezone.now()
         friendship.save()
-        messages.success(request, f"You are now friends with {friendship.from_user.display_name}!")
+        messages.success(request, f"You are now hubbies with {friendship.from_user.display_name}!")
     elif action == 'reject':
         friendship.status = 'rejected'
         friendship.responded_at = timezone.now()
         friendship.save()
-        messages.info(request, f"Friend request from {friendship.from_user.display_name} has been rejected.")
+        messages.info(request, f"Hubby request from {friendship.from_user.display_name} has been rejected.")
     else:
         messages.error(request, "Invalid action.")
     
-    return redirect('accounts:friend_requests')
+    return redirect('accounts:hubby_requests')
 
 
 @login_required
 def friend_requests_view(request):
-    """View for displaying incoming friend requests."""
+    """View for displaying incoming hubby requests."""
     from .models import Friendship
     
-    # Get incoming pending friend requests
+    # Get incoming pending hubby requests
     incoming_requests = Friendship.objects.filter(
         to_user=request.user,
         status='pending'
@@ -564,8 +585,8 @@ def friends_list_view(request, user_id):
     context = {
         'profile_user': profile_user,
         'friends': page_friends,
-        'friend_count': len(friends),
-        'is_own_friends_list': request.user.is_authenticated and request.user == profile_user,
+        'hubby_count': len(friends),
+        'is_own_hubbies_list': request.user.is_authenticated and request.user == profile_user,
     }
     
     return render(request, 'accounts/friends_list.html', context)

@@ -52,36 +52,36 @@
                                             </a></li>
                                         </ul>
                                     </div>
-                                    {% elif friendship_status %}
-                                        {% if friendship_status == 'can_send_request' %}
-                                        <form method="post" action="{% url 'accounts:send_friend_request' user_id=profile_user.id %}" class="d-inline">
+                                    {% elif Hubbyship_status %}
+                                        {% if Hubbyship_status == 'can_send_request' %}
+                                        <form method="post" action="{% url 'accounts:send_Hubby_request' user_id=profile_user.id %}" class="d-inline">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-user-plus me-1"></i>Add Friend
+                                                <i class="fas fa-user-plus me-1"></i>Add Hubby
                                             </button>
                                         </form>
-                                        {% elif friendship_status == 'request_sent' %}
+                                        {% elif Hubbyship_status == 'request_sent' %}
                                         <button class="btn btn-warning" disabled>
                                             <i class="fas fa-clock me-1"></i>Request Sent
                                         </button>
-                                        {% elif friendship_status == 'request_received' %}
+                                        {% elif Hubbyship_status == 'request_received' %}
                                         <div class="d-flex gap-2">
-                                            <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=friendship_request.id action='accept' %}" class="d-inline">
+                                            <form method="post" action="{% url 'accounts:respond_Hubby_request' Hubbyship_id=Hubbyship_request.id action='accept' %}" class="d-inline">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-success">
                                                     <i class="fas fa-check me-1"></i>Accept
                                                 </button>
                                             </form>
-                                            <form method="post" action="{% url 'accounts:respond_friend_request' friendship_id=friendship_request.id action='reject' %}" class="d-inline">
+                                            <form method="post" action="{% url 'accounts:respond_Hubby_request' Hubbyship_id=Hubbyship_request.id action='reject' %}" class="d-inline">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-outline-danger">
                                                     <i class="fas fa-times me-1"></i>Reject
                                                 </button>
                                             </form>
                                         </div>
-                                        {% elif friendship_status == 'friends' %}
+                                        {% elif Hubbyship_status == 'Hubbys' %}
                                         <button class="btn btn-success" disabled>
-                                            <i class="fas fa-check me-1"></i>Friends
+                                            <i class="fas fa-check me-1"></i>Hubbys
                                         </button>
                                         {% endif %}
                                     {% endif %}
@@ -111,9 +111,9 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="border-end">
-                                        <a href="{% url 'accounts:friends_list' user_id=profile_user.id %}" class="text-decoration-none">
-                                            <h5 class="text-warning mb-0">{{ friend_count }}</h5>
-                                            <small class="text-muted">Friend{{ friend_count|pluralize }}</small>
+                                        <a href="{% url 'accounts:hubbies_list' user_id=profile_user.id %}" class="text-decoration-none">
+                                            <h5 class="text-warning mb-0">{{ hubby_count }}</h5>
+                                            <small class="text-muted">Hubby{{ hubby_count|pluralize }}</small>
                                         </a>
                                     </div>
                                 </div>

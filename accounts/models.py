@@ -69,7 +69,18 @@ class CustomUser(AbstractUser, TimestampedModel):
         default=False,
         help_text="Whether the user has verified their email address"
     )
-    
+
+    # Role-based permissions
+    is_forum_admin = models.BooleanField(
+        default=False,
+        help_text="Forum administrator with full administrative privileges"
+    )
+
+    is_forum_moderator = models.BooleanField(
+        default=False,
+        help_text="Forum moderator with content moderation privileges"
+    )
+
     profile_picture = models.ImageField(
         upload_to='profile_pictures/',
         blank=True,
@@ -101,6 +112,27 @@ class CustomUser(AbstractUser, TimestampedModel):
     def get_short_name(self):
         """Return the short name for the user."""
         return self.display_name
+
+    def get_role_display(self):
+        """Return a human-readable role for the user."""
+        if self.is_superuser:
+            return "Super Admin"
+        elif self.is_forum_admin:
+            return "Forum Admin"
+        elif self.is_forum_moderator:
+            return "Forum Moderator"
+        elif self.is_staff:
+            return "Staff"
+        else:
+            return "Member"
+
+    def has_admin_access(self):
+        """Check if user has admin-level access."""
+        return self.is_superuser or self.is_forum_admin
+
+    def has_moderator_access(self):
+        """Check if user has moderator-level access."""
+        return self.is_superuser or self.is_forum_admin or self.is_forum_moderator
 
 
 class UserHobby(TimestampedModel):
@@ -149,7 +181,7 @@ class Photo(TimestampedModel):
 
 
 class Friendship(TimestampedModel):
-    """Model for friend relationships between users."""
+    """Model for hubby relationships between users."""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
@@ -157,27 +189,27 @@ class Friendship(TimestampedModel):
     ]
     
     from_user = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        related_name='sent_friend_requests',
-        help_text="User who sent the friend request"
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='sent_hubby_requests',
+        help_text="User who sent the hubby request"
     )
     to_user = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        related_name='received_friend_requests',
-        help_text="User who received the friend request"
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='received_hubby_requests',
+        help_text="User who received the hubby request"
     )
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
         default='pending',
-        help_text="Status of the friend request"
+        help_text="Status of the hubby request"
     )
     responded_at = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="When the friend request was accepted or rejected"
+        help_text="When the hubby request was accepted or rejected"
     )
     
     class Meta:
@@ -190,10 +222,10 @@ class Friendship(TimestampedModel):
         ]
     
     def clean(self):
-        """Validate that users cannot send friend requests to themselves."""
+        """Validate that users cannot send hubby requests to themselves."""
         from django.core.exceptions import ValidationError
         if self.from_user == self.to_user:
-            raise ValidationError("Users cannot send friend requests to themselves.")
+            raise ValidationError("Users cannot send hubby requests to themselves.")
     
     def save(self, *args, **kwargs):
         """Override save to run validation."""

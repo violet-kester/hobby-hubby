@@ -210,14 +210,14 @@ class FriendRequestViewTestCase(TestCase):
             is_active=True,
             is_email_verified=True
         )
-        self.send_request_url = reverse('accounts:send_friend_request', kwargs={'user_id': self.user2.id})
+        self.send_request_url = reverse('accounts:send_hubby_request', kwargs={'user_id': self.user2.id})
     
-    def test_unauthenticated_user_cannot_send_friend_request(self):
+    def test_unauthenticated_user_cannot_send_hubby_request(self):
         """Test that unauthenticated users cannot send friend requests."""
         response = self.client.post(self.send_request_url)
         self.assertEqual(response.status_code, 302)  # Redirect to login
     
-    def test_authenticated_user_can_send_friend_request(self):
+    def test_authenticated_user_can_send_hubby_request(self):
         """Test that authenticated users can send friend requests."""
         from accounts.models import Friendship
         
@@ -235,11 +235,11 @@ class FriendRequestViewTestCase(TestCase):
         self.assertEqual(friendship.to_user, self.user2)
         self.assertEqual(friendship.status, 'pending')
     
-    def test_user_cannot_send_friend_request_to_self(self):
+    def test_user_cannot_send_hubby_request_to_self(self):
         """Test that users cannot send friend requests to themselves."""
         self.client.login(email='user1@example.com', password='testpass123')
         
-        self_request_url = reverse('accounts:send_friend_request', kwargs={'user_id': self.user1.id})
+        self_request_url = reverse('accounts:send_hubby_request', kwargs={'user_id': self.user1.id})
         response = self.client.post(self_request_url)
         
         # Should redirect with error
@@ -333,7 +333,7 @@ class FriendResponseViewTestCase(TestCase):
         
         self.client.login(email='user2@example.com', password='testpass123')
         
-        accept_url = reverse('accounts:respond_friend_request', kwargs={
+        accept_url = reverse('accounts:respond_hubby_request', kwargs={
             'friendship_id': friendship.id,
             'action': 'accept'
         })
@@ -360,7 +360,7 @@ class FriendResponseViewTestCase(TestCase):
         
         self.client.login(email='user2@example.com', password='testpass123')
         
-        reject_url = reverse('accounts:respond_friend_request', kwargs={
+        reject_url = reverse('accounts:respond_hubby_request', kwargs={
             'friendship_id': friendship.id,
             'action': 'reject'
         })
@@ -388,7 +388,7 @@ class FriendResponseViewTestCase(TestCase):
         # Try to respond as the sender (user1) - should fail
         self.client.login(email='user1@example.com', password='testpass123')
         
-        accept_url = reverse('accounts:respond_friend_request', kwargs={
+        accept_url = reverse('accounts:respond_hubby_request', kwargs={
             'friendship_id': friendship.id,
             'action': 'accept'
         })
@@ -416,7 +416,7 @@ class FriendResponseViewTestCase(TestCase):
         
         self.client.login(email='user2@example.com', password='testpass123')
         
-        reject_url = reverse('accounts:respond_friend_request', kwargs={
+        reject_url = reverse('accounts:respond_hubby_request', kwargs={
             'friendship_id': friendship.id,
             'action': 'reject'
         })
@@ -457,7 +457,7 @@ class FriendListViewTestCase(TestCase):
             is_active=True,
             is_email_verified=True
         )
-        self.friends_url = reverse('accounts:friends_list', kwargs={'user_id': self.user1.id})
+        self.friends_url = reverse('accounts:hubbies_list', kwargs={'user_id': self.user1.id})
     
     def test_unauthenticated_user_can_view_friend_list(self):
         """Test that unauthenticated users can view public friend lists."""
@@ -551,11 +551,11 @@ class FriendListViewTestCase(TestCase):
         """Test that friend list shows empty state when no friends."""
         response = self.client.get(self.friends_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'No friends')
+        self.assertContains(response, 'No Hubbys')
     
     def test_friend_list_404_for_nonexistent_user(self):
         """Test that friend list returns 404 for non-existent user."""
-        friends_url = reverse('accounts:friends_list', kwargs={'user_id': 99999})
+        friends_url = reverse('accounts:hubbies_list', kwargs={'user_id': 99999})
         
         response = self.client.get(friends_url)
         self.assertEqual(response.status_code, 404)
@@ -581,14 +581,14 @@ class FriendRequestListViewTestCase(TestCase):
             is_active=True,
             is_email_verified=True
         )
-        self.requests_url = reverse('accounts:friend_requests')
+        self.requests_url = reverse('accounts:hubby_requests')
     
-    def test_unauthenticated_user_cannot_view_friend_requests(self):
+    def test_unauthenticated_user_cannot_view_hubby_requests(self):
         """Test that unauthenticated users cannot view friend requests."""
         response = self.client.get(self.requests_url)
         self.assertEqual(response.status_code, 302)  # Redirect to login
     
-    def test_authenticated_user_can_view_friend_requests(self):
+    def test_authenticated_user_can_view_hubby_requests(self):
         """Test that authenticated users can view their friend requests."""
         from accounts.models import Friendship
         
@@ -605,7 +605,7 @@ class FriendRequestListViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.user2.display_name)
     
-    def test_friend_requests_shows_only_incoming_pending(self):
+    def test_hubby_requests_shows_only_incoming_pending(self):
         """Test that friend requests shows only incoming pending requests."""
         from accounts.models import Friendship
         from django.utils import timezone
@@ -635,7 +635,7 @@ class FriendRequestListViewTestCase(TestCase):
         
         # Should only show incoming pending requests
         # Note: This assumes the view filters correctly
-        self.assertContains(response, 'Friend Request')
+        self.assertContains(response, 'Hubby Request')
 
 
 class ProfileFriendStatusTestCase(TestCase):
@@ -666,7 +666,7 @@ class ProfileFriendStatusTestCase(TestCase):
         
         response = self.client.get(self.profile_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Add Friend')
+        self.assertContains(response, 'Add Hubby')
     
     def test_profile_shows_pending_status_for_sent_requests(self):
         """Test that profile shows pending status for sent requests."""
@@ -720,7 +720,7 @@ class ProfileFriendStatusTestCase(TestCase):
         
         response = self.client.get(self.profile_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Friends')
+        self.assertContains(response, 'Hubbys')
     
     def test_own_profile_shows_no_friend_buttons(self):
         """Test that user's own profile shows no friend buttons."""
