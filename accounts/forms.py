@@ -94,12 +94,12 @@ class UserRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.display_name = self.cleaned_data['display_name']
-        user.is_active = False  # User needs to verify email first
-        user.is_email_verified = False
-        
+        user.is_active = True  # Email verification disabled - users can login immediately
+        user.is_email_verified = False  # Track verification status but don't require it
+
         if commit:
             user.save()
-        
+
         return user
 
 
@@ -163,19 +163,12 @@ class EmailLoginForm(forms.Form):
                         code='invalid_login',
                     )
                 else:
-                    # Check if user is active
+                    # Check if user is active (email verification no longer required)
                     if not self.user_cache.is_active:
-                        # Check if it's because email is not verified
-                        if not self.user_cache.is_email_verified:
-                            raise ValidationError(
-                                self.error_messages['unverified'],
-                                code='unverified',
-                            )
-                        else:
-                            raise ValidationError(
-                                self.error_messages['inactive'],
-                                code='inactive',
-                            )
+                        raise ValidationError(
+                            self.error_messages['inactive'],
+                            code='inactive',
+                        )
         
         return self.cleaned_data
     
