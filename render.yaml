@@ -1,0 +1,26 @@
+databases:
+  - name: hobby-hubby-db
+    databaseName: hobby_hubby
+    user: hobby_hubby_user
+    plan: free
+
+services:
+  - type: web
+    name: hobby-hubby
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn hobby_hubby.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: hobby_hubby.settings.production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hobby-hubby-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        sync: false
