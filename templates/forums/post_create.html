@@ -59,7 +59,7 @@
             </div>
             
             <div class="card-body">
-                <form method="post" id="reply-form">
+                <form method="post" enctype="multipart/form-data" id="reply-form">
                     {% csrf_token %}
                     
                     <!-- Content Field -->
@@ -106,7 +106,62 @@
                             <div class="form-text">{{ form.content.help_text }}</div>
                         {% endif %}
                     </div>
-                    
+
+                    <!-- Image Upload Section -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-images me-1"></i>
+                            Attach Images (Optional)
+                        </label>
+                        <small class="text-muted d-block mb-2">
+                            You can upload up to 3 images (max 10MB each). Supported formats: JPG, PNG, GIF, WebP
+                        </small>
+
+                        <div id="image-uploads">
+                            <!-- Image Upload 1 -->
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8 mb-2 mb-md-0">
+                                            <input type="file" class="form-control" name="image_0" accept="image/*">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" name="caption_0" placeholder="Caption (optional)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Upload 2 -->
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8 mb-2 mb-md-0">
+                                            <input type="file" class="form-control" name="image_1" accept="image/*">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" name="caption_1" placeholder="Caption (optional)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Upload 3 -->
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8 mb-2 mb-md-0">
+                                            <input type="file" class="form-control" name="image_2" accept="image/*">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" name="caption_2" placeholder="Caption (optional)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Preview Area -->
                     <div class="mb-3" id="preview-area" style="display: none;">
                         <label class="form-label">Preview</label>

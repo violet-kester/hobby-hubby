@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Subcategory, Thread, Post, Vote, Bookmark, SearchHistory, SavedSearch, SearchAnalytics
+from .models import Category, Subcategory, Thread, Post, PostImage, Vote, Bookmark, SearchHistory, SavedSearch, SearchAnalytics
 
 
 @admin.register(Category)
@@ -110,6 +110,14 @@ class ThreadAdmin(admin.ModelAdmin):
         return qs.select_related('subcategory__category', 'author')
 
 
+class PostImageInline(admin.TabularInline):
+    model = PostImage
+    extra = 0
+    fields = ('image', 'caption', 'order', 'created_at')
+    readonly_fields = ('created_at',)
+    ordering = ('order', 'created_at')
+
+
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ('get_post_title', 'thread', 'author', 'vote_count', 'is_edited', 'created_at')
@@ -117,7 +125,8 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ('content', 'author__display_name', 'author__email', 'thread__title')
     ordering = ('-created_at',)
     date_hierarchy = 'created_at'
-    
+    inlines = [PostImageInline]
+
     fieldsets = (
         (None, {
             'fields': ('thread', 'author', 'content')
@@ -136,15 +145,43 @@ class PostAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('created_at', 'updated_at', 'vote_count')
-    
+
     def get_post_title(self, obj):
         """Display first 50 characters of post content as title."""
         return obj.content[:50] + ('...' if len(obj.content) > 50 else '')
     get_post_title.short_description = 'Post Content'
-    
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('thread__subcategory__category', 'author')
+
+
+@admin.register(PostImage)
+class PostImageAdmin(admin.ModelAdmin):
+    list_display = ('get_post_info', 'caption', 'order', 'created_at')
+    list_filter = ('post__thread__subcategory__category', 'created_at')
+    search_fields = ('caption', 'post__content', 'post__thread__title')
+    ordering = ('post', 'order', 'created_at')
+
+    fieldsets = (
+        (None, {
+            'fields': ('post', 'image', 'caption', 'order')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    readonly_fields = ('created_at', 'updated_at')
+
+    def get_post_info(self, obj):
+        """Display post thread and author."""
+        return f"{obj.post.thread.title} by {obj.post.author.display_name}"
+    get_post_info.short_description = 'Post Info'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('post__thread__subcategory__category', 'post__author')
 
 
 @admin.register(Vote)

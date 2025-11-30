@@ -100,6 +100,46 @@
                     <!-- Post content -->
                     <div class="post-content flex-grow-1">
                         {{ post.content|safe }}
+
+                        <!-- Post images -->
+                        {% if post.images.all %}
+                        <div class="post-images mt-3">
+                            <div class="row g-2">
+                                {% for image in post.images.all %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card">
+                                        <img src="{{ image.image.url }}"
+                                             class="card-img-top img-fluid"
+                                             alt="{{ image.caption|default:'Post image' }}"
+                                             style="cursor: pointer; max-height: 300px; object-fit: cover;"
+                                             data-bs-toggle="modal"
+                                             data-bs-target="#imageModal{{ image.id }}">
+                                        {% if image.caption %}
+                                        <div class="card-body py-2">
+                                            <p class="card-text small text-muted mb-0">{{ image.caption }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Image Modal -->
+                                    <div class="modal fade" id="imageModal{{ image.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">{{ image.caption|default:'Image' }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <img src="{{ image.image.url }}" class="img-fluid" alt="{{ image.caption|default:'Post image' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

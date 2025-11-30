@@ -5,7 +5,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 import bleach
-from .models import Thread, Post
+from .models import Thread, Post, PostImage
 
 # Allowed HTML tags and attributes for rich text formatting
 ALLOWED_TAGS = ['b', 'strong', 'i', 'em', 'u', 'br', 'p']
@@ -290,5 +290,40 @@ class SearchForm(forms.Form):
         
         if date_to and date_to > today:
             raise ValidationError('End date cannot be in the future.')
-        
+
         return cleaned_data
+
+
+class PostImageForm(forms.ModelForm):
+    """Form for uploading images to forum posts."""
+
+    class Meta:
+        model = PostImage
+        fields = ['image', 'caption']
+        widgets = {
+            'image': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
+                'multiple': False
+            }),
+            'caption': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Optional caption for your image...',
+                'maxlength': '200'
+            })
+        }
+
+    def clean_image(self):
+        """Validate image upload - reuses validation logic from PhotoUploadForm."""
+        image = self.cleaned_data.get('image')
+        if image:
+            # Check file size (limit to 10MB)
+            if image.size > 10 * 1024 * 1024:
+                raise ValidationError('Image file too large. Please keep it under 10MB.')
+
+            # Check file format
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            if hasattr(image, 'content_type') and image.content_type not in allowed_types:
+                raise ValidationError('Unsupported image format. Please use JPG, PNG, GIF, or WebP.')
+
+        return image

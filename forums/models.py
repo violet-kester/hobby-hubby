@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from core.models import TimestampedModel
@@ -141,6 +142,34 @@ class Post(TimestampedModel):
     
     def __str__(self):
         return f"Post by {self.author.display_name} in {self.thread.title}"
+
+
+class PostImage(TimestampedModel):
+    """Model for images attached to posts."""
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(
+        upload_to='post_images/%Y/%m/',
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp'])],
+        help_text="Upload an image (max 10MB). Supported formats: JPG, JPEG, PNG, GIF, WebP."
+    )
+    caption = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Optional caption for the image"
+    )
+    order = models.IntegerField(
+        default=0,
+        help_text="Display order for multiple images"
+    )
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        indexes = [
+            models.Index(fields=['post', 'order']),
+        ]
+
+    def __str__(self):
+        return f"Image for post in {self.post.thread.title}"
 
 
 # Signals to update denormalized fields

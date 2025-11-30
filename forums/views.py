@@ -24,8 +24,8 @@ from django.core.cache import cache
 logger = logging.getLogger(__name__)
 from django.views.decorators.cache import cache_page
 from django.db import connection
-from .models import Category, Subcategory, Thread, Post, Vote, Bookmark, SearchHistory, SavedSearch, SearchAnalytics
-from .forms import ThreadCreateForm, PostCreateForm, PreviewForm, SearchForm
+from .models import Category, Subcategory, Thread, Post, PostImage, Vote, Bookmark, SearchHistory, SavedSearch, SearchAnalytics
+from .forms import ThreadCreateForm, PostCreateForm, PreviewForm, SearchForm, PostImageForm
 
 # Import PostgreSQL search features if available
 try:
@@ -117,10 +117,10 @@ class ThreadDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get posts for this thread
+        # Get posts for this thread with images
         posts = Post.objects.filter(
             thread=self.object
-        ).select_related('author').order_by('created_at')
+        ).select_related('author').prefetch_related('images').order_by('created_at')
         
         # Paginate posts
         paginator = Paginator(posts, self.paginate_by)
@@ -161,7 +161,7 @@ def thread_create(request, category_slug, subcategory_slug):
         category__slug=category_slug,
         slug=subcategory_slug
     )
-    
+
     if request.method == 'POST':
         form = ThreadCreateForm(request.POST)
         if form.is_valid():
@@ -171,28 +171,42 @@ def thread_create(request, category_slug, subcategory_slug):
                 subcategory=subcategory,
                 author=request.user
             )
-            
+
             # Create the initial post
-            Post.objects.create(
+            post = Post.objects.create(
                 content=form.cleaned_data['content'],
                 thread=thread,
                 author=request.user
             )
-            
+
+            # Handle image uploads (up to 5 images)
+            images_uploaded = 0
+            for i in range(5):  # Support up to 5 images
+                image_key = f'image_{i}'
+                if image_key in request.FILES:
+                    image_form = PostImageForm({'caption': request.POST.get(f'caption_{i}', '')},
+                                              {'image': request.FILES[image_key]})
+                    if image_form.is_valid():
+                        post_image = image_form.save(commit=False)
+                        post_image.post = post
+                        post_image.order = i
+                        post_image.save()
+                        images_uploaded += 1
+
             # Add success message
-            messages.success(
-                request,
-                f'Thread "{thread.title}" created successfully!'
-            )
-            
+            success_msg = f'Thread "{thread.title}" created successfully!'
+            if images_uploaded > 0:
+                success_msg += f' ({images_uploaded} image{"s" if images_uploaded > 1 else ""} uploaded)'
+            messages.success(request, success_msg)
+
             # Redirect to the new thread
-            return redirect('forums:thread_detail', 
+            return redirect('forums:thread_detail',
                            category_slug=subcategory.category.slug,
                            subcategory_slug=subcategory.slug,
                            thread_slug=thread.slug)
     else:
         form = ThreadCreateForm()
-    
+
     return render(request, 'forums/thread_create.html', {
         'form': form,
         'subcategory': subcategory
@@ -227,11 +241,25 @@ def post_create(request, category_slug, subcategory_slug, thread_slug):
                 author=request.user
             )
 
+            # Handle image uploads (up to 5 images)
+            images_uploaded = 0
+            for i in range(5):  # Support up to 5 images
+                image_key = f'image_{i}'
+                if image_key in request.FILES:
+                    image_form = PostImageForm({'caption': request.POST.get(f'caption_{i}', '')},
+                                              {'image': request.FILES[image_key]})
+                    if image_form.is_valid():
+                        post_image = image_form.save(commit=False)
+                        post_image.post = post
+                        post_image.order = i
+                        post_image.save()
+                        images_uploaded += 1
+
             # Add success message
-            messages.success(
-                request,
-                'Reply posted successfully!'
-            )
+            success_msg = 'Reply posted successfully!'
+            if images_uploaded > 0:
+                success_msg += f' ({images_uploaded} image{"s" if images_uploaded > 1 else ""} uploaded)'
+            messages.success(request, success_msg)
 
             # Redirect to the thread with anchor to new post
             thread_url = reverse('forums:thread_detail',
