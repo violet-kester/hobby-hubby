@@ -80,7 +80,7 @@
                     <!-- Vote section -->
                     <div class="vote-section me-3">
                         {% if user.is_authenticated and user != post.author %}
-                        <button class="btn btn-sm btn-outline-primary vote-btn" 
+                        <button class="btn btn-sm {% if post.id in user_voted_posts %}btn-primary{% else %}btn-outline-primary{% endif %} vote-btn"
                                 data-post-id="{{ post.id }}"
                                 data-voted="{% if post.id in user_voted_posts %}true{% else %}false{% endif %}"
                                 title="{% if post.id in user_voted_posts %}Remove vote{% else %}Vote for this post{% endif %}">
@@ -211,11 +211,66 @@
     </div>
 </div>
 
-<!-- AJAX Voting JavaScript -->
+<!-- AJAX Voting and Bookmark JavaScript -->
 {% if user.is_authenticated %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
+        // Handle vote buttons
+        if (event.target.closest('.vote-btn')) {
+            event.preventDefault();
+
+            const button = event.target.closest('.vote-btn');
+            const postId = button.getAttribute('data-post-id');
+
+            button.disabled = true;
+
+            fetch(`/forums/vote/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || `HTTP ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update button state
+                if (data.voted) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary');
+                    button.setAttribute('data-voted', 'true');
+                    button.setAttribute('title', 'Remove vote');
+                } else {
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-outline-primary');
+                    button.setAttribute('data-voted', 'false');
+                    button.setAttribute('title', 'Vote for this post');
+                }
+
+                // Update vote count display
+                const voteCountEl = document.querySelector(`.vote-count[data-post-id="${postId}"]`);
+                if (voteCountEl) {
+                    const voteText = data.vote_count === 1 ? 'vote' : 'votes';
+                    voteCountEl.innerHTML = `<strong>${data.vote_count}</strong><br><small class="text-muted">${voteText}</small>`;
+                }
+
+                button.disabled = false;
+            })
+            .catch(error => {
+                console.error('Vote error:', error);
+                alert('Error: ' + error.message);
+                button.disabled = false;
+            });
+        }
+
         // Handle bookmark buttons
         if (event.target.closest('.bookmark-btn')) {
             event.preventDefault();
@@ -240,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-
                 if (data.success) {
                     // Update button state based on bookmark status
                     if (data.bookmarked) {
