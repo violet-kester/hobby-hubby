@@ -205,9 +205,15 @@
 }
 
 /* Post author name styling with category color */
+.card.category-creative-arts .post-author-name,
+.card.category-sports-fitness .post-author-name,
+.card.category-games-entertainment .post-author-name,
+.card.category-technology-science .post-author-name,
+.card.category-food-culinary .post-author-name,
+.card.category-lifestyle-social .post-author-name,
 .post-author-name {
   color: var(--category-color) !important;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 /* Responsive adjustments */
@@ -495,6 +501,12 @@
 }
 
 /* Post author names remain colorful in dark mode */
+[data-theme="dark"] .card.category-creative-arts .post-author-name,
+[data-theme="dark"] .card.category-sports-fitness .post-author-name,
+[data-theme="dark"] .card.category-games-entertainment .post-author-name,
+[data-theme="dark"] .card.category-technology-science .post-author-name,
+[data-theme="dark"] .card.category-food-culinary .post-author-name,
+[data-theme="dark"] .card.category-lifestyle-social .post-author-name,
 [data-theme="dark"] .post-author-name {
   color: var(--category-color-light) !important;
 }
