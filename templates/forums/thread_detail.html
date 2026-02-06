@@ -56,11 +56,11 @@
         
         {% if posts %}
         {% for post in posts %}
-        <div class="card mb-3" id="post-{{ post.id }}">
+        <div class="card mb-3 category-{{ thread.subcategory.category.color_theme }}" id="post-{{ post.id }}">
             <div class="card-header bg-light">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <strong>{{ post.author.display_name }}</strong>
+                        <strong class="post-author-name">{{ post.author.display_name }}</strong>
                         {% if post.author.location %}
                         <small class="text-muted ms-2">from {{ post.author.location }}</small>
                         {% endif %}

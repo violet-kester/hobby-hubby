@@ -204,6 +204,12 @@
   color: white;
 }
 
+/* Post author name styling with category color */
+.post-author-name {
+  color: var(--category-color) !important;
+  font-weight: 700;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .category-banner {
@@ -486,6 +492,11 @@
 /* Category banners remain colorful in dark mode */
 [data-theme="dark"] .category-banner {
   /* Keep the vibrant colors, they look great on dark backgrounds */
+}
+
+/* Post author names remain colorful in dark mode */
+[data-theme="dark"] .post-author-name {
+  color: var(--category-color-light) !important;
 }
 
 /* Theme toggle button styles */
